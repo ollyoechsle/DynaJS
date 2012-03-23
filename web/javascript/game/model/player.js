@@ -5,6 +5,7 @@
      */
     function Player(name) {
 
+        this.superclass.constructor.call(this);
         log("Creating player " + name);
         this.name = name;
 

@@ -1,6 +1,7 @@
 window.Dyna = {
     app: {},
     util: {},
+    ui: {},
     model: {},
     events: {}
 };if (!Function.prototype.bind) {
@@ -137,8 +138,36 @@ window.Dyna = {
     /**
      * Constructor
      */
+    function Map(name, width, height) {
+
+        log("Creating map " + name);
+        this.name = name;
+        this.width = width;
+        this.height = height;
+
+    }
+
+    Map.prototype.name = null;
+    Map.prototype.width = null;
+    Map.prototype.height = null;
+
+    Map.prototype.tileAt = function(x, y) {
+        return Math.random() > 0.5 ? Map.EARTH : Map.WALL;
+    };
+
+    Map.EARTH = "earth";
+    Map.WALL = "wall";
+
+    Dyna.model.Map = Map;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * Constructor
+     */
     function Player(name) {
 
+        this.superclass.constructor.call(this);
         log("Creating player " + name);
         this.name = name;
 
@@ -225,18 +254,63 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function Game() {
+    function MapView(jContainer, map) {
 
-        log("Starting Dyna Game");
+        log("Creating mapview for  " + map.name);
+        this.jContainer = jContainer;
+        this.map = map;
+
+    }
+
+    MapView.prototype.map = null;
+    MapView.prototype.jContainer = null;
+
+    MapView.prototype.updateAll = function() {
+        log("MapView is updating");
+
+        this.jContainer.empty();
+
+        for (var x = 0; x < this.map.width; x++) {
+            for (var y = 0; y < this.map.height; y++) {
+                var tile =
+                        jQuery("<div></div>")
+                                .addClass("tile")
+                                .addClass(this.map.tileAt(x, y))
+                                .css({
+                            left: x * 30,
+                            top: y * 30
+                        });
+
+                this.jContainer.append(tile);
+            }
+        }
+
+    };
+
+    Dyna.ui.MapView = MapView;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * Constructor
+     */
+    function Game(map, mapView) {
+
+        log("Starting Dyna Game on map " + map.name);
         this.players = [];
+        this.map = map;
+        this.mapView = mapView;
         this._initialiseEvents();
 
     }
 
     Game.prototype.players = null;
+    Game.prototype.map = null;
+    Game.prototype.mapView = null;
 
     Game.prototype._initialiseEvents = function() {
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
+        this.mapView.updateAll();
     };
 
     Game.prototype.pause = function() {
@@ -293,7 +367,9 @@ window.Dyna = {
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
         var
-                game = new Dyna.app.Game(),
+                map = new Dyna.model.Map("Level 1", 10, 10),
+                mapView = new Dyna.ui.MapView(jQuery("#map"), map),
+                game = new Dyna.app.Game(map, mapView),
                 keyboard = new Dyna.util.Keyboard(),
                 Player = Dyna.model.Player;
 
