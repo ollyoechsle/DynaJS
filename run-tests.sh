@@ -1,0 +1,1 @@
+java -jar JsTestDriver-1.3.3d.jar --tests all --browser /Applications/Firefox.app/Contents/MacOS/firefox

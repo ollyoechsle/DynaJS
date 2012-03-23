@@ -1,0 +1,28 @@
+DynaJS
+A bomberman clone in JavaScript and HTML5 technologies
+
+Dependencies:
+jQuery
+
+Building
+Is via an Ant build. Ensure you have Apache Ant installed on your system, then enter (from the base directory)
+ant
+
+This will build a concatenated and minified JS file at web/javascript/dynajs-min.js
+
+You can try examples of JS Key Frame at
+
+web/index.html
+
+Running the tests
+Please run the JS Test Driver tests before committing any changes to this project
+
+To run the tests, first execute
+./test.sh (to start the JS Test Driver server)
+
+Then:
+./run-tests.sh (to run the tests)
+
+Currently the tests are set up for running against Firefox on an OSX box. You may need to change the Firefox path to get it to run on your system.
+
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JS-KeyFrame" default="build" basedir=".">
+
+    <!-- From the JS-Build-Tools project -->
+    <!-- https://github.com/moxiecode/js-build-tools -->
+
+    <!-- Setup classpath for js-build-tools ant tasks -->
+    <path id="js-build-tasks.classpath">
+        <pathelement location="."/>
+
+        <fileset dir="lib">
+            <include name="**/*.jar"/>
+        </fileset>
+
+    </path>
+
+    <taskdef name="preprocess" classname="com.moxiecode.ant.tasks.PreProcessTask"
+             classpathref="js-build-tasks.classpath" loaderref="js-build-tasks.classpath.loader"/>
+    <taskdef name="yuicompress" classname="com.moxiecode.ant.tasks.YuiCompressTask"
+             classpathref="js-build-tasks.classpath" loaderref="js-build-tasks.classpath.loader"/>
+
+    <target name="clean">
+
+        <delete file="web/javascript/dyna-js-min.js"/>
+
+    </target>
+
+    <target name="build" depends="clean">
+
+        <concat destfile="web/javascript/prod/dyna-js-combined.js">
+            <fileset dir="web/javascript/namespace" includes="*.js"/>
+            <fileset dir="web/javascript/lang" includes="*.js"/>
+            <fileset dir="web/javascript/util" includes="*.js"/>
+            <fileset dir="web/javascript/game" includes="*.js"/>
+            <fileset dir="web/javascript/game/model" includes="*.js"/>
+            <fileset dir="web/javascript/game/view" includes="*.js"/>
+            <fileset dir="web/javascript/game/controller" includes="*.js"/>
+            <fileset dir="web/javascript/" includes="*.js"/>
+        </concat>
+
+        <yuicompress infile="web/javascript/prod/dyna-js-combined.js" outfile="web/javascript/prod/dyna-js-min.js"/>
+
+        <!--<delete file="dyna-js-combined.js"/>-->
+
+    </target>
+
+</project>
