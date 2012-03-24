@@ -3,16 +3,16 @@
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewClass, playerViewClass) {
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
         this.level = level;
 
-        this.playerViewClass = playerViewClass;
+        this.playerViewFactory = playerViewFactory;
         this.playerViews = [];
 
-        this.mapViewClass = mapViewClass;
+        this.mapViewFactory = mapViewFactory;
         this.mapView = null;
 
         this.initialise();
@@ -31,12 +31,12 @@
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        this.mapView = new this.mapViewClass(this.jContainer, this.level.map)
+        this.mapView = new this.mapViewFactory(this.level.map)
     };
 
     LevelView.prototype._createPlayerView = function(player) {
         log("LevelView: Creating view for new player");
-        this.playerViews.push(new this.playerViewClass(this.jContainer, player))
+        this.playerViews.push(new this.playerViewFactory(player))
     };
 
     LevelView.prototype.updateAll = function() {

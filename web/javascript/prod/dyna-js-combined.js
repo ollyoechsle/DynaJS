@@ -319,16 +319,16 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewClass, playerViewClass) {
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
         this.level = level;
 
-        this.playerViewClass = playerViewClass;
+        this.playerViewFactory = playerViewFactory;
         this.playerViews = [];
 
-        this.mapViewClass = mapViewClass;
+        this.mapViewFactory = mapViewFactory;
         this.mapView = null;
 
         this.initialise();
@@ -347,12 +347,12 @@ window.Dyna = {
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        this.mapView = new this.mapViewClass(this.jContainer, this.level.map)
+        this.mapView = new this.mapViewFactory(this.level.map)
     };
 
     LevelView.prototype._createPlayerView = function(player) {
         log("LevelView: Creating view for new player");
-        this.playerViews.push(new this.playerViewClass(this.jContainer, player))
+        this.playerViews.push(new this.playerViewFactory(player))
     };
 
     LevelView.prototype.updateAll = function() {
@@ -390,7 +390,7 @@ window.Dyna = {
     };
 
     MapView.prototype.initialiseMap = function() {
-        this.jContainer
+        this.jContainer.parent()
                 .css("width", Dyna.ui.LevelView.tileSize * this.map.width)
                 .css("height", Dyna.ui.LevelView.tileSize * this.map.height);
         this.tileTemplate = jQuery("<div class='tile'></div>");
@@ -429,15 +429,22 @@ window.Dyna = {
     function PlayerView(jContainer, player) {
         log("Creating player view for  " + player.name);
         this.jContainer = jQuery(jContainer);
+        this.player = player;
         this.initialise();
     }
 
-    PlayerView.prototype.initialise = function() {
+    PlayerView.prototype.player = null;
+    PlayerView.prototype.jPlayer = null;
 
+    PlayerView.prototype.initialise = function() {
+        this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
+        log("PlayerView: Added player to " + this.jContainer[0]);
     };
 
     PlayerView.prototype.updateAll = function() {
-
+        this.jPlayer
+                .css("left", Dyna.ui.LevelView.tileSize * this.player.x)
+                .css("top", Dyna.ui.LevelView.tileSize * this.player.y);
     };
 
     Dyna.ui.PlayerView = PlayerView;
@@ -525,7 +532,9 @@ window.Dyna = {
 
         // view
         var
-                levelView = new Dyna.ui.LevelView("#map", level, Dyna.ui.MapView, Dyna.ui.PlayerView);
+                mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
+                playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory);
 
         // controller
         var

@@ -3,7 +3,9 @@ body {
     background: gray;
 }
 
-#map {
+/* Map and Level */
+
+#level {
     position: relative;
     border: 10px solid black;
     margin: 0 auto;
@@ -22,4 +24,13 @@ body {
 
 .tile.wall {
     background: black;
+}
+
+/* Players */
+.player {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: red;
+    border-radius: 20px;
 }

@@ -19,7 +19,9 @@
 
         // view
         var
-                levelView = new Dyna.ui.LevelView("#map", level, Dyna.ui.MapView, Dyna.ui.PlayerView);
+                mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
+                playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory);
 
         // controller
         var

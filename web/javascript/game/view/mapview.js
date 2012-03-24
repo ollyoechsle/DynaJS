@@ -22,7 +22,7 @@
     };
 
     MapView.prototype.initialiseMap = function() {
-        this.jContainer
+        this.jContainer.parent()
                 .css("width", Dyna.ui.LevelView.tileSize * this.map.width)
                 .css("height", Dyna.ui.LevelView.tileSize * this.map.height);
         this.tileTemplate = jQuery("<div class='tile'></div>");
