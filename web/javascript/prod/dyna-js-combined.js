@@ -500,7 +500,16 @@ window.Dyna = {
     PlayerView.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
         this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
+
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
+
+        jQuery("<div class='nameBadge'></div>")
+                .text(this.player.name)
+                .appendTo(this.jPlayer);
+
+        jQuery("<div class='avatar'></div>")
+                .appendTo(this.jPlayer);
+
         log("PlayerView: Added player to " + this.jContainer[0]);
     };
 

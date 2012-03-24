@@ -1,6 +1,7 @@
 body {
     margin: 0;
     background: gray;
+    font-family: Arial, sans-serif;
 }
 
 /* Map and Level */
@@ -9,6 +10,7 @@ body {
     position: relative;
     border: 10px solid black;
     margin: 0 auto;
+    margin-top: 30px;
 }
 
 .tile {
@@ -33,35 +35,60 @@ body {
 /* Players */
 .player {
     position: absolute;
-    width: 30px;
-    height: 30px;
-    background: url(../gfx/players/player1.png) no-repeat;
-    border-radius: 20px;
     -moz-transition: all 200ms ease-in-out;
     -webkit-transition: all 200ms ease-in-out;
     transition: all 200ms ease-in-out;
 }
 
-.player.south {
+.player .avatar {
+    background: url(../gfx/players/player1.png) no-repeat;
+    width: 30px;
+    height: 30px;
+
+    -moz-transition: all 200ms ease-in-out;
+    -webkit-transition: all 200ms ease-in-out;
+    transition: all 200ms ease-in-out;
+}
+
+.player.south .avatar {
     -moz-transform: rotate(-90deg);
     -webkit-transform: rotate(-90deg);
     transform: rotate(-90deg);
 }
 
-.player.north {
+.player.north .avatar {
     -moz-transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
 }
 
-.player.east {
+.player.east .avatar {
     -moz-transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
     transform: rotate(180deg);
 }
 
-.player.west {
+.player.west .avatar {
     -moz-transform: rotate(0deg);
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
 }
+
+.player .nameBadge {
+    border-radius: 20px;
+    position: absolute;
+
+    width: auto;
+    white-space: nowrap;
+    top: -20px;
+    padding: 0 10px;
+
+    background: #fbfafa;
+    -moz-box-shadow: 2px 2px 5px black;
+
+    font-size: 10px;
+    line-height: 15px;
+    height: 15px;
+    
+}
+
