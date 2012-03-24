@@ -7,7 +7,7 @@
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
         var
-                map = new Dyna.model.Map("Level 1", 10, 10),
+                map = new Dyna.model.Map("Level 1", 11, 11),
                 mapView = new Dyna.ui.MapView(jQuery("#map"), map),
                 game = new Dyna.app.Game(map, mapView),
                 keyboard = new Dyna.util.Keyboard(),

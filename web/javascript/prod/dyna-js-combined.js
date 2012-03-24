@@ -144,15 +144,40 @@ window.Dyna = {
         this.name = name;
         this.width = width;
         this.height = height;
+        this._buildLevel();
 
     }
 
     Map.prototype.name = null;
     Map.prototype.width = null;
     Map.prototype.height = null;
+    Map.prototype.data = null;
+
+    Map.prototype._buildLevel = function() {
+        var data = [], row;
+
+        for (var y = 0; y < this.height; y++) {
+
+            row = [];
+
+            for (var x = 0; x < this.width; x++) {
+
+                if (x % 2 == 1 && y % 2 == 1) {
+                    row.push(Map.WALL);
+                } else {
+                    row.push(Map.EARTH);
+                }
+
+            }
+
+            data.push(row);
+
+        }
+        this.data = data;
+    };
 
     Map.prototype.tileAt = function(x, y) {
-        return Math.random() > 0.5 ? Map.EARTH : Map.WALL;
+        return this.data[x][y];
     };
 
     Map.EARTH = "earth";
@@ -367,7 +392,7 @@ window.Dyna = {
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
         var
-                map = new Dyna.model.Map("Level 1", 10, 10),
+                map = new Dyna.model.Map("Level 1", 11, 11),
                 mapView = new Dyna.ui.MapView(jQuery("#map"), map),
                 game = new Dyna.app.Game(map, mapView),
                 keyboard = new Dyna.util.Keyboard(),
