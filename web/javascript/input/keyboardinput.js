@@ -22,7 +22,6 @@
     KeyboardInput.prototype.actions = null;
 
     KeyboardInput.prototype.handleKeyPress = function(key) {
-        log("Keyboard input handling key press for " + key);
         var event = this.actions[key];
         event && this.fire(event);
     };

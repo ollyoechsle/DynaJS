@@ -31,6 +31,7 @@
             <fileset dir="web/javascript/namespace" includes="*.js"/>
             <fileset dir="web/javascript/lang" includes="*.js"/>
             <fileset dir="web/javascript/util" includes="*.js"/>
+            <fileset dir="web/javascript/input" includes="*.js"/>
             <fileset dir="web/javascript/game" includes="*.js"/>
             <fileset dir="web/javascript/game/model" includes="*.js"/>
             <fileset dir="web/javascript/game/view" includes="*.js"/>

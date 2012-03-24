@@ -33,8 +33,6 @@
 
         var keyCode = event.keyCode, action, actionTookPlace;
 
-        log(keyCode);
-
         if (keyCode >= 65 && keyCode <= 90) {
             action = chars[keyCode - 65];
         } else if (keyCode >= 48 && keyCode <= 57) {
