@@ -14,6 +14,7 @@
     PlayerView.prototype.jPlayer = null;
 
     PlayerView.prototype.initialise = function() {
+        this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
         log("PlayerView: Added player to " + this.jContainer[0]);
     };
