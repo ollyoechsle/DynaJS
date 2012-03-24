@@ -81,10 +81,12 @@ body {
     width: auto;
     white-space: nowrap;
     top: -20px;
-    padding: 0 10px;
+    padding: 0 8px;
 
     background: #fbfafa;
+    -webkit-box-shadow: 2px 2px 5px black;
     -moz-box-shadow: 2px 2px 5px black;
+    box-shadow: 2px 2px 5px black;
 
     font-size: 10px;
     line-height: 15px;
