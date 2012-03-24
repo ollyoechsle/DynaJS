@@ -282,7 +282,7 @@ window.Dyna = {
                 if (x % 2 == 1 && y % 2 == 1) {
                     row.push(Map.WALL);
                 } else {
-                    row.push(Map.EARTH);
+                    row.push(Math.random() < 0.75 ? Map.BLOCK : Map.EARTH);
                 }
 
             }
@@ -297,11 +297,20 @@ window.Dyna = {
         this.data = data;
     };
 
+    Map.prototype.clearSpaceAround = function(x, y) {
+        this.data[x][y] = Map.EARTH;
+        if (y < this.height - 1) this.data[x][y + 1] = Map.EARTH;
+        if (y > 0) this.data[x][y - 1] = Map.EARTH;
+        if (x > 0) this.data[x - 1][y] = Map.EARTH;
+        if (x < this.width - 1) this.data[x + 1][y] = Map.EARTH;
+    };
+
     Map.prototype.findPositionFor = function(player) {
         var position = this.playerPositions.shift();
         if (position) {
             player.x = position.x;
             player.y = position.y;
+            this.clearSpaceAround(position.x, position.y);
             return true;
         } else {
             return false;
@@ -314,6 +323,7 @@ window.Dyna = {
 
     Map.EARTH = "earth";
     Map.WALL = "wall";
+    Map.BLOCK = "block";
 
     Dyna.model.Map = Map;
 

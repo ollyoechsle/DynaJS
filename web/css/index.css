@@ -23,6 +23,10 @@ body {
 }
 
 .tile.wall {
+    background: black;
+}
+
+.tile.block {
     background: url(../gfx/tiles/crate.png) no-repeat;
 }
 
