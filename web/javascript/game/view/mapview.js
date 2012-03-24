@@ -49,7 +49,7 @@
                         );
             }
         }
-
+      
         this.jContainer.empty().append(newContents);
 
     };

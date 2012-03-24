@@ -20,7 +20,9 @@
                             "down" : Player.DOWN,
                             "left" : Player.LEFT,
                             "right" : Player.RIGHT
-                        })))
+                        })));
+
+        game.start();
 
     }
 

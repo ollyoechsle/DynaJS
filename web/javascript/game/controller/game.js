@@ -19,19 +19,19 @@
 
     Game.prototype._initialiseEvents = function() {
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
-        this.mapView.updateAll();
     };
 
     Game.prototype.pause = function() {
         log("Game paused");
     };
 
-    Game.prototype.addPlayer = function(player) {
+    Game.prototype.addPlayer = function(player) {        
         this.players.push(player);
-        log("Game has " + this.players.length + " player(s)")
+        log("Game has " + this.map.players.length + " player(s)")
     };
 
     Game.prototype.start = function() {
+        this.mapView.updateAll();
     };
 
     Dyna.app.Game = Game;

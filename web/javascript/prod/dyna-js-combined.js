@@ -175,6 +175,11 @@ window.Dyna = {
         }
         this.data = data;
     };
+    
+    Map.prototype.findPositionFor = function(player) {
+        player.x = 0;
+        player.y = 0;
+    };
 
     Map.prototype.tileAt = function(x, y) {
         return this.data[x][y];
@@ -353,7 +358,6 @@ window.Dyna = {
 
     Game.prototype._initialiseEvents = function() {
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
-        this.mapView.updateAll();
     };
 
     Game.prototype.pause = function() {
@@ -362,10 +366,12 @@ window.Dyna = {
 
     Game.prototype.addPlayer = function(player) {
         this.players.push(player);
+        this.map.findPositionFor(player);
         log("Game has " + this.players.length + " player(s)")
     };
 
     Game.prototype.start = function() {
+        this.mapView.updateAll();
     };
 
     Dyna.app.Game = Game;
@@ -423,7 +429,9 @@ window.Dyna = {
                             "down" : Player.DOWN,
                             "left" : Player.LEFT,
                             "right" : Player.RIGHT
-                        })))
+                        })));
+
+        game.start();
 
     }
 

@@ -41,6 +41,11 @@
         this.data = data;
     };
 
+    Map.prototype.findPositionFor = function(player) {
+        player.x = 0;
+        player.y = 0;
+    };
+
     Map.prototype.tileAt = function(x, y) {
         return this.data[x][y];
     };
