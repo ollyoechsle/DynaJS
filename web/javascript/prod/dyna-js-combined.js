@@ -133,6 +133,87 @@ window.Dyna = {
 
     Dyna.events.CustomEvent = CustomEvent;
 
+})(window.Dyna);(function(Dyna, jQuery) {
+
+    /**
+     * Constructor
+     */
+    function Keyboard() {
+        this.superclass.constructor.call(this);
+        this._init();
+    }
+
+    Object.extend(Keyboard, Dyna.events.CustomEvent);
+
+    var chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+
+    var specialChars = {
+        '38' :'up',
+        '40' :'down',
+        '37' :'left',
+        '39' :'right',
+        '13' :'enter',
+        '9'  :'tab',
+        '27' :'esc',
+        '190' :'.',
+        '191' :'/'
+    };
+
+    Keyboard.prototype._init = function() {
+        log("Initialising keyboard events", this._subscribers);
+        jQuery(document).keydown(this._handleKeyDown.bind(this));
+    };
+
+    Keyboard.prototype._handleKeyDown = function(event) {
+
+        var keyCode = event.keyCode, action, actionTookPlace;
+
+        if (keyCode >= 65 && keyCode <= 90) {
+            action = chars[keyCode - 65];
+        } else if (keyCode >= 48 && keyCode <= 57) {
+            action = keyCode - 48;
+        } else {
+            action = specialChars[keyCode];
+        }
+
+        if (action !== undefined) {
+            actionTookPlace = this.fire("keydown", action, event);
+        }
+
+    };
+
+    Dyna.util.Keyboard = Keyboard;
+
+})(window.Dyna, jQuery);(function(Dyna) {
+
+    /**
+     * Manages mappings between key presses and actions
+     */
+    function KeyboardInput(keyboard, actions) {
+
+        this.superclass.constructor.call(this);
+
+        if (!actions) {
+            throw new Error("Cannot create keyboard input without actions");
+        }
+
+        log("Starting Keyboard Input with actions " + actions);
+        keyboard.on("keydown", this.handleKeyPress.bind(this));
+        this.actions = actions;
+
+    }
+
+    Object.extend(KeyboardInput, Dyna.events.CustomEvent);
+
+    KeyboardInput.prototype.actions = null;
+
+    KeyboardInput.prototype.handleKeyPress = function(key) {
+        var event = this.actions[key];
+        event && this.fire(event);
+    };
+
+    Dyna.app.KeyboardInput = KeyboardInput;
+
 })(window.Dyna);(function(Dyna) {
 
     /**
@@ -178,6 +259,7 @@ window.Dyna = {
         this.name = name;
         this.width = width;
         this.height = height;
+        this.playerPositions = [];
         this.build();
 
     }
@@ -186,6 +268,7 @@ window.Dyna = {
     Map.prototype.width = null;
     Map.prototype.height = null;
     Map.prototype.data = null;
+    Map.prototype.playerPositions = null;
 
     Map.prototype.build = function() {
         var data = [], row;
@@ -207,13 +290,22 @@ window.Dyna = {
             data.push(row);
 
         }
+
+        this.playerPositions.push({x : 0, y : 0});
+        this.playerPositions.push({x : this.width - 1, y : this.height - 1});
+
         this.data = data;
     };
 
     Map.prototype.findPositionFor = function(player) {
-        player.x = 0;
-        player.y = 0;
-        return true;
+        var position = this.playerPositions.shift();
+        if (position) {
+            player.x = position.x;
+            player.y = position.y;
+            return true;
+        } else {
+            return false;
+        }
     };
 
     Map.prototype.tileAt = function(x, y) {
@@ -269,59 +361,6 @@ window.Dyna = {
     Dyna.model.Player = Player;
 
 })(window.Dyna);(function(Dyna, jQuery) {
-
-    /**
-     * Constructor
-     */
-    function Keyboard() {
-        this.superclass.constructor.call(this);
-        this._init();
-    }
-
-    Object.extend(Keyboard, Dyna.events.CustomEvent);
-
-    var chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
-
-    var specialChars = {
-        '38' :'up',
-        '40' :'down',
-        '37' :'left',
-        '39' :'right',
-        '13' :'enter',
-        '9'  :'tab',
-        '27' :'esc',
-        '190' :'.',
-        '191' :'/'
-    };
-
-    Keyboard.prototype._init = function() {
-        log("Initialising keyboard events", this._subscribers);
-        jQuery(document).keydown(this._handleKeyDown.bind(this));
-    };
-
-    Keyboard.prototype._handleKeyDown = function(event) {
-
-        var keyCode = event.keyCode, action, actionTookPlace;
-
-        log(keyCode);
-
-        if (keyCode >= 65 && keyCode <= 90) {
-            action = chars[keyCode - 65];
-        } else if (keyCode >= 48 && keyCode <= 57) {
-            action = keyCode - 48;
-        } else {
-            action = specialChars[keyCode];
-        }
-
-        if (action !== undefined) {
-            actionTookPlace = this.fire("keydown", action, event);
-        }
-
-    };
-
-    Dyna.util.Keyboard = Keyboard;
-
-})(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
     /**
      * Constructor
@@ -490,37 +529,6 @@ window.Dyna = {
 
 })(window.Dyna);(function(Dyna) {
 
-    /**
-     * Manages mappings between key presses and actions
-     */
-    function KeyboardInput(keyboard, actions) {
-
-        this.superclass.constructor.call(this);
-
-        if (!actions) {
-            throw new Error("Cannot create keyboard input without actions");
-        }
-
-        log("Starting Keyboard Input with actions " + actions);
-        keyboard.on("keydown", this.handleKeyPress.bind(this));
-        this.actions = actions;
-
-    }
-
-    Object.extend(KeyboardInput, Dyna.events.CustomEvent);
-
-    KeyboardInput.prototype.actions = null;
-
-    KeyboardInput.prototype.handleKeyPress = function(key) {
-        log("Keyboard input handling key press for " + key);
-        var event = this.actions[key];
-        event && this.fire(event);
-    };
-
-    Dyna.app.KeyboardInput = KeyboardInput;
-
-})(window.Dyna);(function(Dyna) {
-
     function init() {
 
         log("Initialising DynaJS");
@@ -555,6 +563,14 @@ window.Dyna = {
                     "down" : Player.DOWN,
                     "left" : Player.LEFT,
                     "right" : Player.RIGHT
+                })));
+
+        level.addPlayer(new Player("Player 2").withControls(
+                new Dyna.app.KeyboardInput(keyboard, {
+                    "w" : Player.UP,
+                    "s" : Player.DOWN,
+                    "a" : Player.LEFT,
+                    "d" : Player.RIGHT
                 })));
 
         game.start();

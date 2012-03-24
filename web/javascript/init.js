@@ -36,6 +36,14 @@
                     "right" : Player.RIGHT
                 })));
 
+        level.addPlayer(new Player("Player 2").withControls(
+                new Dyna.app.KeyboardInput(keyboard, {
+                    "w" : Player.UP,
+                    "s" : Player.DOWN,
+                    "a" : Player.LEFT,
+                    "d" : Player.RIGHT
+                })));
+
         game.start();
 
     }
