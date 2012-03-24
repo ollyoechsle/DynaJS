@@ -43,7 +43,7 @@ window.Dyna = {
     SubClass.prototype.superclass = superPrototype;
 
 };function log() {
-    console && console.log.apply(window, arguments);
+    console && console.log(arguments);
 }/**
  * @see customeventTest.html For JS Unit tests
  */
