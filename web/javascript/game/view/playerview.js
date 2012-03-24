@@ -12,11 +12,24 @@
 
     PlayerView.prototype.player = null;
     PlayerView.prototype.jPlayer = null;
+    PlayerView.prototype.currentDirection = null;
 
     PlayerView.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
+        this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
         log("PlayerView: Added player to " + this.jContainer[0]);
+    };
+
+    PlayerView.prototype.changeDirection = function(direction) {
+
+        if (this.currentDirection || this.currentDirection != direction) {
+            this.jPlayer.removeClass(this.currentDirection);
+        }
+
+        this.jPlayer.addClass(direction);
+        this.currentDirection = direction;
+
     };
 
     PlayerView.prototype.updateAll = function() {

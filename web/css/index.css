@@ -31,6 +31,23 @@ body {
     position: absolute;
     width: 30px;
     height: 30px;
-    background: red;
+    background: url(../gfx/players/player1.png) no-repeat;
     border-radius: 20px;
+    -moz-transition: all 200ms ease-in-out;
+}
+
+.player.south {
+    -moz-transform: rotate(-90deg);
+}
+
+.player.north {
+    -moz-transform: rotate(90deg);
+}
+
+.player.east {
+    -moz-transform: rotate(180deg);
+}
+
+.player.west {
+    -moz-transform: rotate(0deg);
 }

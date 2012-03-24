@@ -337,16 +337,17 @@ window.Dyna = {
     Player.prototype.y = null;
 
     Player.prototype.withControls = function(keyboardInput) {
-        keyboardInput.on(Player.UP, this.move.bind(this, 0, -1));
-        keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1));
-        keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0));
-        keyboardInput.on(Player.RIGHT, this.move.bind(this, +1, 0));
+        keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
+        keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
+        keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
+        keyboardInput.on(Player.RIGHT, this.move.bind(this, +1, 0, 'east'));
         return this;
     };
 
-    Player.prototype.move = function(x, y) {
+    Player.prototype.move = function(x, y, direction) {
         this.x += x;
         this.y += y;
+        this.fire(Player.DIRECTION_CHANGED, direction);
         this.fire(Player.MOVED);
     };
 
@@ -357,6 +358,9 @@ window.Dyna = {
 
     /** @event */
     Player.MOVED = "moved";
+
+    /** @event */
+    Player.DIRECTION_CHANGED = "directionChanged";
 
     Dyna.model.Player = Player;
 
@@ -481,11 +485,24 @@ window.Dyna = {
 
     PlayerView.prototype.player = null;
     PlayerView.prototype.jPlayer = null;
+    PlayerView.prototype.currentDirection = null;
 
     PlayerView.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
+        this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
         log("PlayerView: Added player to " + this.jContainer[0]);
+    };
+
+    PlayerView.prototype.changeDirection = function(direction) {
+
+        if (this.currentDirection || this.currentDirection != direction) {
+            this.jPlayer.removeClass(this.currentDirection);
+        }
+
+        this.jPlayer.addClass(direction);
+        this.currentDirection = direction;
+
     };
 
     PlayerView.prototype.updateAll = function() {
