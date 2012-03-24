@@ -6,21 +6,33 @@
 
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
-        var
-                map = new Dyna.model.Map("Level 1", 11, 11),
-                mapView = new Dyna.ui.MapView(jQuery("#map"), map),
-                game = new Dyna.app.Game(map, mapView),
-                keyboard = new Dyna.util.Keyboard(),
-                Player = Dyna.model.Player;
+        var Player = Dyna.model.Player;
 
-        game.addPlayer(
-                new Player("Player1").withControls(
-                        new Dyna.app.KeyboardInput(keyboard, {
-                            "up" : Player.UP,
-                            "down" : Player.DOWN,
-                            "left" : Player.LEFT,
-                            "right" : Player.RIGHT
-                        })));
+        // eventing
+        var
+                keyboard = new Dyna.util.Keyboard();
+
+        // model
+        var
+                map = new Dyna.model.Map(11, 11),
+                level = new Dyna.model.Level("Level 1", map);
+
+        // view
+        var
+                levelView = new Dyna.ui.LevelView("#map", level, Dyna.ui.MapView, Dyna.ui.PlayerView);
+
+        // controller
+        var
+                game = new Dyna.app.Game(level, levelView);
+
+        // run time
+        level.addPlayer(new Player("Player 1").withControls(
+                new Dyna.app.KeyboardInput(keyboard, {
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "left" : Player.LEFT,
+                    "right" : Player.RIGHT
+                })));
 
         game.start();
 

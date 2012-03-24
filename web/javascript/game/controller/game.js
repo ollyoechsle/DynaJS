@@ -3,19 +3,17 @@
     /**
      * Constructor
      */
-    function Game(map, mapView) {
+    function Game(level, levelView) {
 
-        log("Starting Dyna Game on map " + map.name);
-        this.players = [];
-        this.map = map;
-        this.mapView = mapView;
+        log("Starting Dyna Game on level " + level.name);
+        this.level = level;
+        this.levelView = levelView;
         this._initialiseEvents();
 
     }
 
-    Game.prototype.players = null;
-    Game.prototype.map = null;
-    Game.prototype.mapView = null;
+    Game.prototype.level = null;
+    Game.prototype.levelView = null;
 
     Game.prototype._initialiseEvents = function() {
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
@@ -25,13 +23,8 @@
         log("Game paused");
     };
 
-    Game.prototype.addPlayer = function(player) {        
-        this.players.push(player);
-        log("Game has " + this.map.players.length + " player(s)")
-    };
-
     Game.prototype.start = function() {
-        this.mapView.updateAll();
+        this.levelView.updateAll();
     };
 
     Dyna.app.Game = Game;

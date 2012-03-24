@@ -3,13 +3,13 @@
     /**
      * Constructor
      */
-    function Map(name, width, height) {
+    function Map(width, height) {
 
-        log("Creating map " + name);
+        log("Creating map");
         this.name = name;
         this.width = width;
         this.height = height;
-        this._buildLevel();
+        this.build();
 
     }
 
@@ -18,7 +18,7 @@
     Map.prototype.height = null;
     Map.prototype.data = null;
 
-    Map.prototype._buildLevel = function() {
+    Map.prototype.build = function() {
         var data = [], row;
 
         for (var y = 0; y < this.height; y++) {
@@ -44,6 +44,7 @@
     Map.prototype.findPositionFor = function(player) {
         player.x = 0;
         player.y = 0;
+        return true;
     };
 
     Map.prototype.tileAt = function(x, y) {

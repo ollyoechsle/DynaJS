@@ -138,13 +138,47 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function Map(name, width, height) {
+    function Level(name, map) {
 
-        log("Creating map " + name);
+        this.superclass.constructor.call(this);
+
+        log("Creating level " + name);
+        this.map = map;
+        this.players = [];
+
+    }
+
+    Object.extend(Level, Dyna.events.CustomEvent);
+
+    Level.prototype.map = null;
+    Level.prototype.players = [];
+
+    Level.prototype.addPlayer = function(player) {
+        if (this.map.findPositionFor(player)) {
+            this.players.push(player);
+            log("Game has " + this.players.length + " player(s)");
+            this.fire(Level.PLAYER_ADDED, player);
+        } else {
+            log("No room for this player on the map");
+        }
+    };
+
+    Level.PLAYER_ADDED = "playerAdded";
+
+    Dyna.model.Level = Level;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * Constructor
+     */
+    function Map(width, height) {
+
+        log("Creating map");
         this.name = name;
         this.width = width;
         this.height = height;
-        this._buildLevel();
+        this.build();
 
     }
 
@@ -153,7 +187,7 @@ window.Dyna = {
     Map.prototype.height = null;
     Map.prototype.data = null;
 
-    Map.prototype._buildLevel = function() {
+    Map.prototype.build = function() {
         var data = [], row;
 
         for (var y = 0; y < this.height; y++) {
@@ -175,10 +209,11 @@ window.Dyna = {
         }
         this.data = data;
     };
-    
+
     Map.prototype.findPositionFor = function(player) {
         player.x = 0;
         player.y = 0;
+        return true;
     };
 
     Map.prototype.tileAt = function(x, y) {
@@ -279,44 +314,93 @@ window.Dyna = {
 
     Dyna.util.Keyboard = Keyboard;
 
-})(window.Dyna, jQuery);(function(Dyna) {
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
+
+    /**
+     * Constructor
+     */
+    function LevelView(jContainer, level, mapViewClass, playerViewClass) {
+        log("Creating LevelView for  " + level.name);
+
+        this.jContainer = jQuery(jContainer);
+        this.level = level;
+
+        this.playerViewClass = playerViewClass;
+        this.playerViews = [];
+
+        this.mapViewClass = mapViewClass;
+        this.mapView = null;
+
+        this.initialise();
+    }
+
+    LevelView.prototype.jContainer = null;
+    LevelView.prototype.level = null;
+
+    LevelView.prototype.playerViewClass = null;
+    LevelView.prototype.playerViews = null;
+
+    LevelView.prototype.mapViewClass = null;
+    LevelView.prototype.mapView = null;
+
+    LevelView.prototype.initialise = function() {
+        log("Initialising level view");
+        LevelView.tileSize = 30;
+        this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
+        this.mapView = new this.mapViewClass(this.jContainer, this.level.map)
+    };
+
+    LevelView.prototype._createPlayerView = function(player) {
+        log("LevelView: Creating view for new player");
+        this.playerViews.push(new this.playerViewClass(this.jContainer, player))
+    };
+
+    LevelView.prototype.updateAll = function() {
+
+        this.mapView.updateAll(this.level);
+        for (var i = 0; i < this.playerViews.length; i++) {
+            this.playerViews[i].updateAll();
+        }
+
+    };
+
+    Dyna.ui.LevelView = LevelView;
+
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
     /**
      * Constructor
      */
     function MapView(jContainer, map) {
-        log("Creating mapview for  " + map.name);
-        this.jContainer = jContainer;
+        log("Creating mapview");
+        this.jContainer = jQuery(jContainer);
         this.map = map;
         this.initialise();
     }
 
     MapView.prototype.map = null;
     MapView.prototype.jContainer = null;
-    MapView.prototype.tileSize = 30;
     MapView.prototype.tileTemplate = null;
 
     MapView.prototype.initialise = function() {
 
         log("Initialising map view");
-
-        this.tileSize = 30;
         this.initialiseMap();
 
     };
 
     MapView.prototype.initialiseMap = function() {
         this.jContainer
-                .css("width", this.tileSize * this.map.width)
-                .css("height", this.tileSize * this.map.height);
+                .css("width", Dyna.ui.LevelView.tileSize * this.map.width)
+                .css("height", Dyna.ui.LevelView.tileSize * this.map.height);
         this.tileTemplate = jQuery("<div class='tile'></div>");
     };
 
     MapView.prototype.getTile = function(tileClass, x, y) {
         return this.tileTemplate.clone()
                 .addClass(tileClass)
-                .css("left", x * this.tileSize)
-                .css("top", y * this.tileSize)
+                .css("left", x * Dyna.ui.LevelView.tileSize)
+                .css("top", y * Dyna.ui.LevelView.tileSize)
     };
 
     MapView.prototype.updateAll = function() {
@@ -330,31 +414,50 @@ window.Dyna = {
                         );
             }
         }
-
+      
         this.jContainer.empty().append(newContents);
 
     };
 
     Dyna.ui.MapView = MapView;
 
-})(window.Dyna);(function(Dyna) {
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
     /**
      * Constructor
      */
-    function Game(map, mapView) {
+    function PlayerView(jContainer, player) {
+        log("Creating player view for  " + player.name);
+        this.jContainer = jQuery(jContainer);
+        this.initialise();
+    }
 
-        log("Starting Dyna Game on map " + map.name);
-        this.players = [];
-        this.map = map;
-        this.mapView = mapView;
+    PlayerView.prototype.initialise = function() {
+
+    };
+
+    PlayerView.prototype.updateAll = function() {
+
+    };
+
+    Dyna.ui.PlayerView = PlayerView;
+
+})(window.Dyna, jQuery);(function(Dyna) {
+
+    /**
+     * Constructor
+     */
+    function Game(level, levelView) {
+
+        log("Starting Dyna Game on level " + level.name);
+        this.level = level;
+        this.levelView = levelView;
         this._initialiseEvents();
 
     }
 
-    Game.prototype.players = null;
-    Game.prototype.map = null;
-    Game.prototype.mapView = null;
+    Game.prototype.level = null;
+    Game.prototype.levelView = null;
 
     Game.prototype._initialiseEvents = function() {
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
@@ -364,14 +467,8 @@ window.Dyna = {
         log("Game paused");
     };
 
-    Game.prototype.addPlayer = function(player) {
-        this.players.push(player);
-        this.map.findPositionFor(player);
-        log("Game has " + this.players.length + " player(s)")
-    };
-
     Game.prototype.start = function() {
-        this.mapView.updateAll();
+        this.levelView.updateAll();
     };
 
     Dyna.app.Game = Game;
@@ -415,21 +512,33 @@ window.Dyna = {
 
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
-        var
-                map = new Dyna.model.Map("Level 1", 11, 11),
-                mapView = new Dyna.ui.MapView(jQuery("#map"), map),
-                game = new Dyna.app.Game(map, mapView),
-                keyboard = new Dyna.util.Keyboard(),
-                Player = Dyna.model.Player;
+        var Player = Dyna.model.Player;
 
-        game.addPlayer(
-                new Player("Player1").withControls(
-                        new Dyna.app.KeyboardInput(keyboard, {
-                            "up" : Player.UP,
-                            "down" : Player.DOWN,
-                            "left" : Player.LEFT,
-                            "right" : Player.RIGHT
-                        })));
+        // eventing
+        var
+                keyboard = new Dyna.util.Keyboard();
+
+        // model
+        var
+                map = new Dyna.model.Map(11, 11),
+                level = new Dyna.model.Level("Level 1", map);
+
+        // view
+        var
+                levelView = new Dyna.ui.LevelView("#map", level, Dyna.ui.MapView, Dyna.ui.PlayerView);
+
+        // controller
+        var
+                game = new Dyna.app.Game(level, levelView);
+
+        // run time
+        level.addPlayer(new Player("Player 1").withControls(
+                new Dyna.app.KeyboardInput(keyboard, {
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "left" : Player.LEFT,
+                    "right" : Player.RIGHT
+                })));
 
         game.start();
 
