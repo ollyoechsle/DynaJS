@@ -68,7 +68,15 @@
     };
 
     Map.prototype.tileAt = function(x, y) {
+        if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
+            return null;
+        }
         return this.data[x][y];
+    };
+
+    Map.prototype.isFree = function(x, y) {
+        var tile = this.tileAt(x, y);
+        return tile && tile == Map.EARTH;
     };
 
     Map.EARTH = "earth";

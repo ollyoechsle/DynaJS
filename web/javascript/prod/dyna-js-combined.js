@@ -237,10 +237,18 @@ window.Dyna = {
     Level.prototype.addPlayer = function(player) {
         if (this.map.findPositionFor(player)) {
             this.players.push(player);
+            player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
             log("Game has " + this.players.length + " player(s)");
             this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
+        }
+    };
+
+    Level.prototype.handlePlayerMove = function(player, x, y) {
+        log("Handle player move to ", x, y);
+        if (this.map.isFree(x, y)) {
+            player.moveTo(x, y);
         }
     };
 
@@ -318,7 +326,15 @@ window.Dyna = {
     };
 
     Map.prototype.tileAt = function(x, y) {
+        if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
+            return null;
+        }
         return this.data[x][y];
+    };
+
+    Map.prototype.isFree = function(x, y) {
+        var tile = this.tileAt(x, y);
+        return tile && tile == Map.EARTH;
     };
 
     Map.EARTH = "earth";
@@ -354,10 +370,14 @@ window.Dyna = {
         return this;
     };
 
-    Player.prototype.move = function(x, y, direction) {
-        this.x += x;
-        this.y += y;
+    Player.prototype.move = function(dx, dy, direction) {
+        this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
         this.fire(Player.DIRECTION_CHANGED, direction);
+    };
+
+    Player.prototype.moveTo = function(x, y) {
+        this.x = x;
+        this.y = y;
         this.fire(Player.MOVED);
     };
 
@@ -371,6 +391,9 @@ window.Dyna = {
 
     /** @event */
     Player.DIRECTION_CHANGED = "directionChanged";
+
+    /** @event */
+    Player.WANTS_TO_MOVE = "wantsToMove";
 
     Dyna.model.Player = Player;
 
@@ -543,7 +566,7 @@ window.Dyna = {
         this.level = level;
         this.levelView = levelView;
         this._initialiseEvents();
-
+                                                       
     }
 
     Game.prototype.level = null;

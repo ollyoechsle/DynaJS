@@ -9,7 +9,7 @@
         this.level = level;
         this.levelView = levelView;
         this._initialiseEvents();
-
+                                                       
     }
 
     Game.prototype.level = null;

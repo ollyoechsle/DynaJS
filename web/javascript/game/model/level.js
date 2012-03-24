@@ -21,10 +21,16 @@
     Level.prototype.addPlayer = function(player) {
         if (this.map.findPositionFor(player)) {
             this.players.push(player);
-            log("Game has " + this.players.length + " player(s)");
+            player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
             this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
+        }
+    };
+
+    Level.prototype.handlePlayerMove = function(player, x, y) {
+        if (this.map.isFree(x, y)) {
+            player.moveTo(x, y);
         }
     };
 

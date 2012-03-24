@@ -25,10 +25,14 @@
         return this;
     };
 
-    Player.prototype.move = function(x, y, direction) {
-        this.x += x;
-        this.y += y;
+    Player.prototype.move = function(dx, dy, direction) {
+        this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
         this.fire(Player.DIRECTION_CHANGED, direction);
+    };
+
+    Player.prototype.moveTo = function(x, y) {
+        this.x = x;
+        this.y = y;
         this.fire(Player.MOVED);
     };
 
@@ -42,6 +46,9 @@
 
     /** @event */
     Player.DIRECTION_CHANGED = "directionChanged";
+
+    /** @event */
+    Player.WANTS_TO_MOVE = "wantsToMove";
 
     Dyna.model.Player = Player;
 
