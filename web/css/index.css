@@ -19,11 +19,11 @@ body {
 }
 
 .tile.earth {
-    background: #90ee90;
+    background: url(../gfx/tiles/sand.png) no-repeat;
 }
 
 .tile.wall {
-    background: black;
+    background: url(../gfx/tiles/crate.png) no-repeat;
 }
 
 /* Players */
