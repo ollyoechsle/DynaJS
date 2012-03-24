@@ -1,5 +1,12 @@
 body {
+    margin: 0;
+    background: gray;
+}
 
+#map {
+    position: relative;
+    border: 10px solid black;
+    margin: 0 auto;
 }
 
 .tile {
