@@ -91,6 +91,18 @@ body {
     font-size: 10px;
     line-height: 15px;
     height: 15px;
-    
+
+}
+
+.bomb {
+    width: 30px;
+    height: 30px;
+    background: black;
+    position: absolute;
+    -moz-border-radius: 30px;
+}
+
+.bomb.exploded {
+    background: rgba(0, 0, 0, 0.5);
 }
 

@@ -219,6 +219,43 @@ window.Dyna = {
     /**
      * Constructor
      */
+    function Bomb(x, y) {
+
+        this.superclass.constructor.call(this);
+        log("Creating bomb");
+        this.x = x;
+        this.y = y;
+        this.exploded = false;
+
+        this.startTicking();
+
+    }
+
+    Object.extend(Bomb, Dyna.events.CustomEvent);
+
+    Bomb.prototype.x = null;
+    Bomb.prototype.y = null;
+    Bomb.prototype.exploded = false;
+
+    Bomb.prototype.startTicking = function() {
+        window.setTimeout(this.explode.bind(this), 5 * 1000);
+    };
+
+    Bomb.prototype.explode = function() {
+        this.exploded = true;
+        this.fire(Bomb.EXPLODE, this);
+    };
+
+    /** @event */
+    Bomb.EXPLODE = "explode";
+
+    Dyna.model.Bomb = Bomb;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * Constructor
+     */
     function Level(name, map) {
 
         this.superclass.constructor.call(this);
@@ -238,7 +275,6 @@ window.Dyna = {
         if (this.map.findPositionFor(player)) {
             this.players.push(player);
             player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
-            log("Game has " + this.players.length + " player(s)");
             this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
@@ -246,7 +282,6 @@ window.Dyna = {
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
-        log("Handle player move to ", x, y);
         if (this.map.isFree(x, y)) {
             player.moveTo(x, y);
         }
@@ -353,6 +388,7 @@ window.Dyna = {
         this.superclass.constructor.call(this);
         log("Creating player " + name);
         this.name = name;
+        this.bombsLaid = 0;
 
     }
 
@@ -361,12 +397,14 @@ window.Dyna = {
     Player.prototype.name = null;
     Player.prototype.x = null;
     Player.prototype.y = null;
+    Player.prototype.bombsLaid = 0;
 
     Player.prototype.withControls = function(keyboardInput) {
         keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
         keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
         keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
         keyboardInput.on(Player.RIGHT, this.move.bind(this, +1, 0, 'east'));
+        keyboardInput.on(Player.ENTER, this.layBomb.bind(this));
         return this;
     };
 
@@ -381,10 +419,27 @@ window.Dyna = {
         this.fire(Player.MOVED);
     };
 
+    Player.prototype.layBomb = function() {
+
+        log("Laying bomb");
+        if (this.bombsLaid == 0) {
+            var bomb = new Dyna.model.Bomb(this.x, this.y);
+            this.bombsLaid++;
+            bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
+            Dyna.app.GlobalEvents.fire(Player.LAID_BOMB, bomb);
+        }
+
+    };
+
+    Player.prototype._handleMyBombExploded = function() {
+        this.bombsLaid--;
+    };
+
     Player.UP = "up";
     Player.DOWN = "down";
     Player.LEFT = "left";
     Player.RIGHT = "right";
+    Player.ENTER = "enter";
 
     /** @event */
     Player.MOVED = "moved";
@@ -395,6 +450,9 @@ window.Dyna = {
     /** @event */
     Player.WANTS_TO_MOVE = "wantsToMove";
 
+    /** @event */
+    Player.LAID_BOMB = "laidBomb";
+
     Dyna.model.Player = Player;
 
 })(window.Dyna);(function(Dyna, jQuery) {
@@ -402,7 +460,36 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory) {
+    function BombView(jContainer, bomb) {
+        log("Creating bomb view");
+        this.jContainer = jQuery(jContainer);
+        this.bomb = bomb;
+        this.initialise();
+    }
+
+    BombView.prototype.bomb = null;
+    BombView.prototype.jBomb = null;
+
+    BombView.prototype.initialise = function() {
+        this.bomb.on(Dyna.model.Bomb.EXPLODE, this.showExplosion.bind(this));
+        this.jBomb = jQuery("<div class='bomb'></div>")
+                .css("left", Dyna.ui.LevelView.tileSize * this.bomb.x)
+                .css("top", Dyna.ui.LevelView.tileSize * this.bomb.y)
+                .appendTo(this.jContainer);
+    };
+
+    BombView.prototype.showExplosion = function() {
+        this.jBomb.addClass("exploded");
+    };
+
+    Dyna.ui.BombView = BombView;
+
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
+
+    /**
+     * Constructor
+     */
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
@@ -414,28 +501,37 @@ window.Dyna = {
         this.mapViewFactory = mapViewFactory;
         this.mapView = null;
 
+        this.bombViewFactory = bombViewFactory;
+
         this.initialise();
     }
 
     LevelView.prototype.jContainer = null;
     LevelView.prototype.level = null;
 
-    LevelView.prototype.playerViewClass = null;
+    LevelView.prototype.playerViewFactory = null;
     LevelView.prototype.playerViews = null;
 
-    LevelView.prototype.mapViewClass = null;
+    LevelView.prototype.mapViewFactory = null;
     LevelView.prototype.mapView = null;
+
+    LevelView.prototype.bombViewFactory = null;
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        this.mapView = new this.mapViewFactory(this.level.map)
+        Dyna.app.GlobalEvents.on(Dyna.model.Player.LAID_BOMB, this._handleBombLaid.bind(this));
+        this.mapView = this.mapViewFactory(this.level.map)
+    };
+
+    LevelView.prototype._handleBombLaid = function(bomb) {
+        this.bombViewFactory(bomb);
     };
 
     LevelView.prototype._createPlayerView = function(player) {
         log("LevelView: Creating view for new player");
-        this.playerViews.push(new this.playerViewFactory(player))
+        this.playerViews.push(this.playerViewFactory(player))
     };
 
     LevelView.prototype.updateAll = function() {
@@ -609,7 +705,8 @@ window.Dyna = {
         var
                 mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
                 playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
-                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory);
+                bombViewFactory = function(bomb) { return new Dyna.ui.BombView("#level .players", bomb) },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory);
 
         // controller
         var
@@ -621,7 +718,8 @@ window.Dyna = {
                     "up" : Player.UP,
                     "down" : Player.DOWN,
                     "left" : Player.LEFT,
-                    "right" : Player.RIGHT
+                    "right" : Player.RIGHT,
+                    "enter" : Player.ENTER
                 })));
 
         level.addPlayer(new Player("Player 2").withControls(
@@ -629,7 +727,8 @@ window.Dyna = {
                     "w" : Player.UP,
                     "s" : Player.DOWN,
                     "a" : Player.LEFT,
-                    "d" : Player.RIGHT
+                    "d" : Player.RIGHT,
+                    "tab" : Player.ENTER
                 })));
 
         game.start();

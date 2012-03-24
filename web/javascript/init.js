@@ -21,7 +21,8 @@
         var
                 mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
                 playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
-                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory);
+                bombViewFactory = function(bomb) { return new Dyna.ui.BombView("#level .players", bomb) },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory);
 
         // controller
         var
@@ -33,7 +34,8 @@
                     "up" : Player.UP,
                     "down" : Player.DOWN,
                     "left" : Player.LEFT,
-                    "right" : Player.RIGHT
+                    "right" : Player.RIGHT,
+                    "enter" : Player.ENTER
                 })));
 
         level.addPlayer(new Player("Player 2").withControls(
@@ -41,7 +43,8 @@
                     "w" : Player.UP,
                     "s" : Player.DOWN,
                     "a" : Player.LEFT,
-                    "d" : Player.RIGHT
+                    "d" : Player.RIGHT,
+                    "tab" : Player.ENTER
                 })));
 
         game.start();

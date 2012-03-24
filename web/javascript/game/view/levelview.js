@@ -3,7 +3,7 @@
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory) {
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
@@ -15,28 +15,37 @@
         this.mapViewFactory = mapViewFactory;
         this.mapView = null;
 
+        this.bombViewFactory = bombViewFactory;
+
         this.initialise();
     }
 
     LevelView.prototype.jContainer = null;
     LevelView.prototype.level = null;
 
-    LevelView.prototype.playerViewClass = null;
+    LevelView.prototype.playerViewFactory = null;
     LevelView.prototype.playerViews = null;
 
-    LevelView.prototype.mapViewClass = null;
+    LevelView.prototype.mapViewFactory = null;
     LevelView.prototype.mapView = null;
+
+    LevelView.prototype.bombViewFactory = null;
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        this.mapView = new this.mapViewFactory(this.level.map)
+        Dyna.app.GlobalEvents.on(Dyna.model.Player.LAID_BOMB, this._handleBombLaid.bind(this));
+        this.mapView = this.mapViewFactory(this.level.map)
+    };
+
+    LevelView.prototype._handleBombLaid = function(bomb) {
+        this.bombViewFactory(bomb);
     };
 
     LevelView.prototype._createPlayerView = function(player) {
         log("LevelView: Creating view for new player");
-        this.playerViews.push(new this.playerViewFactory(player))
+        this.playerViews.push(this.playerViewFactory(player))
     };
 
     LevelView.prototype.updateAll = function() {
