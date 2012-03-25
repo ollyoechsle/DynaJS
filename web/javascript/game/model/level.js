@@ -38,14 +38,8 @@
         for (var i = 0; i < explosion.tilesAffected.length; i++) {
             var tile = explosion.tilesAffected[i];
             this.map.destroy(tile.x, tile.y);
-        }
-        for (i = 0; i < this.players.length; i++) {
-            var player = this.players[i];
-            if (explosion.isAffected(player.x, player.y)) {
-                player.die();
-            }
-        }
-        this.fire(Level.MAP_UPDATED);
+        }     
+        Dyna.app.GlobalEvents.fire(Dyna.model.Bomb.EXPLODE, explosion);
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
@@ -59,9 +53,6 @@
 
     /** @event */
     Level.BOMB_ADDED = "bombAdded";
-
-    /** @event */
-    Level.MAP_UPDATED = "mapUpdated";
 
     Dyna.model.Level = Level;
 

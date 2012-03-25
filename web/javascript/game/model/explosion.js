@@ -14,7 +14,7 @@
         });
     };
 
-    Explosion.prototype.isAffected = function(x, y) {
+    Explosion.prototype.affects = function(x, y) {
         for (var i = 0; i < this.tilesAffected.length; i++) {
             var tile = this.tilesAffected[i];
             if (tile.x == x && tile.y == y) {

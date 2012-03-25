@@ -10,6 +10,7 @@
         this.name = name;
         this.bombsLaid = 0;
         this.bombsAvailable = 2;
+        this.initialise();
     }
 
     Object.extend(Player, Dyna.events.CustomEvent);
@@ -20,6 +21,16 @@
     Player.prototype.bombsLaid = 0;
     Player.prototype.bombsAvailable = 0;
     Player.prototype.keyboardInput = null;
+
+    Player.prototype.initialise = function() {
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.possiblyGetBlownUp.bind(this));
+    };
+
+    Player.prototype.possiblyGetBlownUp = function(explosion) {
+        if (explosion.affects(this.x, this.y)) {
+            this.die();
+        }
+    };
 
     Player.prototype.withControls = function(keyboardInput) {
         this.keyboardInput = keyboardInput;

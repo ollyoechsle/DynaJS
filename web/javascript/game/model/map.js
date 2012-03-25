@@ -5,8 +5,6 @@
      */
     function Map(width, height) {
 
-        log("Creating map");
-        this.name = name;
         this.width = width;
         this.height = height;
         this.playerPositions = [];
@@ -14,7 +12,6 @@
 
     }
 
-    Map.prototype.name = null;
     Map.prototype.width = null;
     Map.prototype.height = null;
     Map.prototype.data = null;

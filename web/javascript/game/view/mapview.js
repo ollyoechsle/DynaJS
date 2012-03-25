@@ -19,6 +19,8 @@
         log("Initialising map view");
         this.initialiseMap();
 
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.updateAll.bind(this));
+
     };
 
     MapView.prototype.initialiseMap = function() {
@@ -46,7 +48,7 @@
                         );
             }
         }
-      
+
         this.jContainer.empty().append(newContents);
 
     };

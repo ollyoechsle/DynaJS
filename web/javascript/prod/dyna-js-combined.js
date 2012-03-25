@@ -280,7 +280,7 @@ window.Dyna = {
         });
     };
 
-    Explosion.prototype.isAffected = function(x, y) {
+    Explosion.prototype.affects = function(x, y) {
         for (var i = 0; i < this.tilesAffected.length; i++) {
             var tile = this.tilesAffected[i];
             if (tile.x == x && tile.y == y) {
@@ -332,14 +332,8 @@ window.Dyna = {
         for (var i = 0; i < explosion.tilesAffected.length; i++) {
             var tile = explosion.tilesAffected[i];
             this.map.destroy(tile.x, tile.y);
-        }
-        for (i = 0; i < this.players.length; i++) {
-            var player = this.players[i];
-            if (explosion.isAffected(player.x, player.y)) {
-                player.die();
-            }
-        }
-        this.fire(Level.MAP_UPDATED);
+        }     
+        Dyna.app.GlobalEvents.fire(Dyna.model.Bomb.EXPLODE, explosion);
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
@@ -354,9 +348,6 @@ window.Dyna = {
     /** @event */
     Level.BOMB_ADDED = "bombAdded";
 
-    /** @event */
-    Level.MAP_UPDATED = "mapUpdated";
-
     Dyna.model.Level = Level;
 
 })(window.Dyna);(function(Dyna) {
@@ -366,8 +357,6 @@ window.Dyna = {
      */
     function Map(width, height) {
 
-        log("Creating map");
-        this.name = name;
         this.width = width;
         this.height = height;
         this.playerPositions = [];
@@ -375,7 +364,6 @@ window.Dyna = {
 
     }
 
-    Map.prototype.name = null;
     Map.prototype.width = null;
     Map.prototype.height = null;
     Map.prototype.data = null;
@@ -465,6 +453,7 @@ window.Dyna = {
         this.name = name;
         this.bombsLaid = 0;
         this.bombsAvailable = 2;
+        this.initialise();
     }
 
     Object.extend(Player, Dyna.events.CustomEvent);
@@ -475,6 +464,16 @@ window.Dyna = {
     Player.prototype.bombsLaid = 0;
     Player.prototype.bombsAvailable = 0;
     Player.prototype.keyboardInput = null;
+
+    Player.prototype.initialise = function() {
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.possiblyGetBlownUp.bind(this));
+    };
+
+    Player.prototype.possiblyGetBlownUp = function(explosion) {
+        if (explosion.affects(this.x, this.y)) {
+            this.die();
+        }
+    };
 
     Player.prototype.withControls = function(keyboardInput) {
         this.keyboardInput = keyboardInput;
@@ -575,6 +574,31 @@ window.Dyna = {
     /**
      * Constructor
      */
+    function ExplosionView(jContainer, explosion) {
+        this.jContainer = jQuery(jContainer);
+        this.explosion = explosion;
+        this.initialise();
+    }
+
+    ExplosionView.prototype.explosion = null;
+    ExplosionView.prototype.jContainer = null;
+    ExplosionView.prototype.jExplosion = null;
+
+    ExplosionView.prototype.initialise = function() {
+
+    };
+
+    ExplosionView.prototype.showExplosion = function() {
+
+    };
+
+    Dyna.ui.ExplosionView = ExplosionView;
+
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
+
+    /**
+     * Constructor
+     */
     function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory) {
         log("Creating LevelView for  " + level.name);
 
@@ -606,7 +630,6 @@ window.Dyna = {
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
-        this.level.on(Dyna.model.Level.MAP_UPDATED, this.updateAll.bind(this));
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.mapView = this.mapViewFactory(this.level.map)
@@ -653,6 +676,8 @@ window.Dyna = {
         log("Initialising map view");
         this.initialiseMap();
 
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.updateAll.bind(this));
+
     };
 
     MapView.prototype.initialiseMap = function() {
@@ -680,7 +705,7 @@ window.Dyna = {
                         );
             }
         }
-      
+
         this.jContainer.empty().append(newContents);
 
     };
