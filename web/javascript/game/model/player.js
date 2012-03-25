@@ -51,6 +51,10 @@
 
     };
 
+    Player.prototype.die = function() {
+        this.fire(Player.DIED);
+    };
+
     Player.prototype._handleMyBombExploded = function() {
         this.bombsLaid--;
     };
@@ -72,6 +76,9 @@
 
     /** @event */
     Player.LAID_BOMB = "laidBomb";
+
+    /** @event */
+    Player.DIED = "died";
 
     Dyna.model.Player = Player;
 

@@ -39,6 +39,12 @@
             var tile = explosion.tilesAffected[i];
             this.map.destroy(tile.x, tile.y);
         }
+        for (i = 0; i < this.players.length; i++) {
+            var player = this.players[i];
+            if (explosion.isAffected(player.x, player.y)) {
+                player.die();
+            }
+        }
         this.fire(Level.MAP_UPDATED);
     };
 

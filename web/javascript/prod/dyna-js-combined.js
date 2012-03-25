@@ -330,6 +330,12 @@ window.Dyna = {
             var tile = explosion.tilesAffected[i];
             this.map.destroy(tile.x, tile.y);
         }
+        for (i = 0; i < this.players.length; i++) {
+            var player = this.players[i];
+            if (explosion.isAffected(player.x, player.y)) {
+                player.die();
+            }
+        }
         this.fire(Level.MAP_UPDATED);
     };
 
@@ -497,6 +503,10 @@ window.Dyna = {
 
     };
 
+    Player.prototype.die = function() {
+        this.fire(Player.DIED);
+    };
+
     Player.prototype._handleMyBombExploded = function() {
         this.bombsLaid--;
     };
@@ -518,6 +528,9 @@ window.Dyna = {
 
     /** @event */
     Player.LAID_BOMB = "laidBomb";
+
+    /** @event */
+    Player.DIED = "died";
 
     Dyna.model.Player = Player;
 
@@ -686,6 +699,7 @@ window.Dyna = {
     PlayerView.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
         this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
+        this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
 
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
 
@@ -697,6 +711,10 @@ window.Dyna = {
                 .appendTo(this.jPlayer);
 
         log("PlayerView: Added player to " + this.jContainer[0]);
+    };
+
+    PlayerView.prototype.handlePlayerDied = function() {
+        this.jPlayer.addClass("dead");
     };
 
     PlayerView.prototype.changeDirection = function(direction) {

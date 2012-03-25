@@ -17,6 +17,7 @@
     PlayerView.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
         this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
+        this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
 
         this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
 
@@ -28,6 +29,10 @@
                 .appendTo(this.jPlayer);
 
         log("PlayerView: Added player to " + this.jContainer[0]);
+    };
+
+    PlayerView.prototype.handlePlayerDied = function() {
+        this.jPlayer.addClass("dead");
     };
 
     PlayerView.prototype.changeDirection = function(direction) {

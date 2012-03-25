@@ -52,6 +52,10 @@ body {
     transition: all 200ms ease-in-out;
 }
 
+.player.dead .avatar {
+    background: url(../gfx/players/player1.dead.png) no-repeat;
+}
+
 .player.south .avatar {
     -moz-transform: rotate(-90deg);
     -webkit-transform: rotate(-90deg);
@@ -95,6 +99,12 @@ body {
     height: 15px;
 
 }
+
+.player.dead .nameBadge {
+    color: red;
+}
+
+/* Bombs */
 
 .bomb {
     width: 30px;
