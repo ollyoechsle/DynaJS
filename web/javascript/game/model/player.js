@@ -9,7 +9,7 @@
         log("Creating player " + name);
         this.name = name;
         this.bombsLaid = 0;
-
+        this.bombsAvailable = 2;
     }
 
     Object.extend(Player, Dyna.events.CustomEvent);
@@ -18,8 +18,11 @@
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
+    Player.prototype.bombsAvailable = 0;
+    Player.prototype.keyboardInput = null;
 
     Player.prototype.withControls = function(keyboardInput) {
+        this.keyboardInput = keyboardInput;
         keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
         keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
         keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
@@ -42,7 +45,7 @@
     Player.prototype.layBomb = function() {
 
         log("Laying bomb");
-        if (this.bombsLaid == 0) {
+        if (this.bombsLaid < this.bombsAvailable) {
             var bomb = new Dyna.model.Bomb(this.x, this.y);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
@@ -52,6 +55,7 @@
     };
 
     Player.prototype.die = function() {
+        this.keyboardInput.unsubscribeAll();
         this.fire(Player.DIED);
     };
 

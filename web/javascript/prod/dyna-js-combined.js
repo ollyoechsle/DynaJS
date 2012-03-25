@@ -241,7 +241,7 @@ window.Dyna = {
     Bomb.prototype.exploded = false;
 
     Bomb.prototype.startTicking = function() {
-        window.setTimeout(this.explode.bind(this), 5 * 1000);
+        window.setTimeout(this.explode.bind(this), 3 * 1000);
     };
 
     Bomb.prototype.getExplosion = function() {
@@ -464,7 +464,7 @@ window.Dyna = {
         log("Creating player " + name);
         this.name = name;
         this.bombsLaid = 0;
-
+        this.bombsAvailable = 2;
     }
 
     Object.extend(Player, Dyna.events.CustomEvent);
@@ -473,8 +473,11 @@ window.Dyna = {
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
+    Player.prototype.bombsAvailable = 0;
+    Player.prototype.keyboardInput = null;
 
     Player.prototype.withControls = function(keyboardInput) {
+        this.keyboardInput = keyboardInput;
         keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
         keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
         keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
@@ -497,7 +500,7 @@ window.Dyna = {
     Player.prototype.layBomb = function() {
 
         log("Laying bomb");
-        if (this.bombsLaid == 0) {
+        if (this.bombsLaid < this.bombsAvailable) {
             var bomb = new Dyna.model.Bomb(this.x, this.y);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
@@ -507,6 +510,7 @@ window.Dyna = {
     };
 
     Player.prototype.die = function() {
+        this.keyboardInput.unsubscribeAll();
         this.fire(Player.DIED);
     };
 

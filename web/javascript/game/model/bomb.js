@@ -22,7 +22,7 @@
     Bomb.prototype.exploded = false;
 
     Bomb.prototype.startTicking = function() {
-        window.setTimeout(this.explode.bind(this), 5 * 1000);
+        window.setTimeout(this.explode.bind(this), 3 * 1000);
     };
 
     Bomb.prototype.getExplosion = function() {
