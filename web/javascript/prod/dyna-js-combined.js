@@ -178,6 +178,9 @@ window.Dyna = {
 
         if (action !== undefined) {
             actionTookPlace = this.fire("keydown", action, event);
+            return false;
+        } else {
+            return true;
         }
 
     };
