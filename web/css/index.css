@@ -38,6 +38,8 @@ body {
     -moz-transition: all 200ms ease-in-out;
     -webkit-transition: all 200ms ease-in-out;
     transition: all 200ms ease-in-out;
+
+    z-index: 100;
 }
 
 .player .avatar {
@@ -109,7 +111,7 @@ body {
 }
 
 .bomb.exploded {
-    background: rgba(0, 0, 0, 0.5);
+    background: url(../gfx/bombs/scorch1.png) no-repeat;
 }
 
 @-moz-keyframes ticking
