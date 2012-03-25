@@ -538,14 +538,14 @@ window.Dyna = {
 
     BombView.prototype.initialise = function() {
         this.bomb.on(Dyna.model.Bomb.EXPLODE, this.showExplosion.bind(this));
-        this.jBomb = jQuery("<div class='bomb'></div>")
+        this.jBomb = jQuery("<div class='ticking bomb'></div>")
                 .css("left", Dyna.ui.LevelView.tileSize * this.bomb.x)
                 .css("top", Dyna.ui.LevelView.tileSize * this.bomb.y)
                 .appendTo(this.jContainer);
     };
 
     BombView.prototype.showExplosion = function() {
-        this.jBomb.addClass("exploded");
+        this.jBomb.removeClass("ticking").addClass("exploded");
     };
 
     Dyna.ui.BombView = BombView;

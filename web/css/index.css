@@ -100,9 +100,22 @@ body {
     background: black;
     position: absolute;
     -moz-border-radius: 30px;
+
+}
+
+.bomb.ticking {
+    -moz-animation: ticking 1s;
+    -moz-animation-iteration-count: infinite;
 }
 
 .bomb.exploded {
     background: rgba(0, 0, 0, 0.5);
+}
+
+@-moz-keyframes ticking
+{
+0%   {-moz-transform: scale(1.0)}
+50%  {-moz-transform: scale(0.85);}
+100%  {-moz-transform: scale(1.0);}
 }
 
