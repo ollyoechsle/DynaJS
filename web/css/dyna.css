@@ -21,11 +21,11 @@ body {
 }
 
 .tile.earth {
-    background: url(../gfx/tiles/sand.png) no-repeat;
+    background: url(../gfx/tiles/grass.png) no-repeat;
 }
 
 .tile.wall {
-    background: black;
+    background: url(../gfx/tiles/wall.png) no-repeat;
 }
 
 .tile.block {
