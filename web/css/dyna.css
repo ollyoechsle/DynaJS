@@ -119,13 +119,18 @@ body {
     height: 30px;
     background: black;
     position: absolute;
+
     -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
 
 }
 
 .bomb.ticking {
     -moz-animation: ticking 1s;
     -moz-animation-iteration-count: infinite;
+
+    -webkit-animation: ticking 1s;
+    -webkit-animation-iteration-count: infinite;    
 }
 
 .bomb.exploded1 {
@@ -147,6 +152,13 @@ body {
 100%  {-moz-transform: scale(1.0);}
 }
 
+@-webkit-keyframes ticking
+{
+0%   {-webkit-transform: scale(1.0)}
+50%  {-webkit-transform: scale(0.85);}
+100%  {-webkit-transform: scale(1.0);}
+}
+
 /* Explosions */
 .fireBall {
     position: absolute;
@@ -155,7 +167,10 @@ body {
     z-index: 200;
 
     -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+    
     -moz-animation: flame 1s;
+    -webkit-animation: flame 1s;
 }
 
 @-moz-keyframes flame
@@ -177,6 +192,28 @@ opacity: 1.0
 background-color: red;
 opacity: 0.0
 -moz-transform: scale(0.2 )
+}
+}
+
+@-webkit-keyframes flame
+{
+0%   {
+-webkit-transform: scale(0)
+background-color: white;
+opacity: 1.0
+-webkit-transform: scale(0.1)
+}
+50%  {
+-webkit-transform: scale(1.0);
+background-color: yellow;
+opacity: 1.0
+-webkit-transform: scale(1.0)
+}
+100%  {
+-webkit-transform: scale(0.8);
+background-color: red;
+opacity: 0.0
+-webkit-transform: scale(0.2 )
 }
 }
 
