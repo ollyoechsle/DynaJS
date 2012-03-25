@@ -585,11 +585,15 @@ window.Dyna = {
     ExplosionView.prototype.jExplosion = null;
 
     ExplosionView.prototype.initialise = function() {
-
-    };
-
-    ExplosionView.prototype.showExplosion = function() {
-
+        var fragment = document.createDocumentFragment();
+        for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
+            var tile = this.explosion.tilesAffected[i];
+            fragment.appendChild(jQuery("<div class='fireBall'></div>")
+                .css("left", tile.x * Dyna.ui.LevelView.tileSize)
+                .css("top", tile.y * Dyna.ui.LevelView.tileSize)
+                [0]);
+        }
+        this.jContainer.append(fragment);
     };
 
     Dyna.ui.ExplosionView = ExplosionView;
@@ -599,7 +603,7 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory) {
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
@@ -612,6 +616,7 @@ window.Dyna = {
         this.mapView = null;
 
         this.bombViewFactory = bombViewFactory;
+        this.explosionViewFactory = explosionViewFactory;
 
         this.initialise();
     }
@@ -626,17 +631,25 @@ window.Dyna = {
     LevelView.prototype.mapView = null;
 
     LevelView.prototype.bombViewFactory = null;
+    LevelView.prototype.explosionViewFactory = null;
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
+
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this._handleExplosion.bind(this));
+
         this.mapView = this.mapViewFactory(this.level.map)
     };
 
     LevelView.prototype._handleBombLaid = function(bomb) {
         this.bombViewFactory(bomb);
+    };
+
+    LevelView.prototype._handleExplosion = function(explosion) {
+        this.explosionViewFactory(explosion);
     };
 
     LevelView.prototype._createPlayerView = function(player) {
@@ -823,7 +836,8 @@ window.Dyna = {
                 mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
                 playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
                 bombViewFactory = function(bomb) { return new Dyna.ui.BombView("#level .players", bomb) },
-                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory);
+                explosionViewFactory = function(explosion) { return new Dyna.ui.ExplosionView("#level .explosions", explosion) },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
 
         // controller
         var

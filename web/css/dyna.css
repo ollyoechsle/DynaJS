@@ -147,3 +147,36 @@ body {
 100%  {-moz-transform: scale(1.0);}
 }
 
+/* Explosions */
+.fireBall {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    z-index: 200;
+
+    -moz-border-radius: 30px;
+    -moz-animation: flame 1s;
+}
+
+@-moz-keyframes flame
+{
+0%   {
+-moz-transform: scale(0)
+background-color: white;
+opacity: 1.0
+-moz-transform: scale(0.1)
+}
+50%  {
+-moz-transform: scale(1.0);
+background-color: yellow;
+opacity: 1.0
+-moz-transform: scale(1.0)
+}
+100%  {
+-moz-transform: scale(0.8);
+background-color: red;
+opacity: 0.0
+-moz-transform: scale(0.2 )
+}
+}
+

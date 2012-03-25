@@ -3,7 +3,7 @@
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory) {
+    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
@@ -16,6 +16,7 @@
         this.mapView = null;
 
         this.bombViewFactory = bombViewFactory;
+        this.explosionViewFactory = explosionViewFactory;
 
         this.initialise();
     }
@@ -30,17 +31,25 @@
     LevelView.prototype.mapView = null;
 
     LevelView.prototype.bombViewFactory = null;
+    LevelView.prototype.explosionViewFactory = null;
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
+
+        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this._handleExplosion.bind(this));
+
         this.mapView = this.mapViewFactory(this.level.map)
     };
 
     LevelView.prototype._handleBombLaid = function(bomb) {
         this.bombViewFactory(bomb);
+    };
+
+    LevelView.prototype._handleExplosion = function(explosion) {
+        this.explosionViewFactory(explosion);
     };
 
     LevelView.prototype._createPlayerView = function(player) {

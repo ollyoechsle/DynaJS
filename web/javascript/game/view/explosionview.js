@@ -14,11 +14,15 @@
     ExplosionView.prototype.jExplosion = null;
 
     ExplosionView.prototype.initialise = function() {
-
-    };
-
-    ExplosionView.prototype.showExplosion = function() {
-
+        var fragment = document.createDocumentFragment();
+        for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
+            var tile = this.explosion.tilesAffected[i];
+            fragment.appendChild(jQuery("<div class='fireBall'></div>")
+                .css("left", tile.x * Dyna.ui.LevelView.tileSize)
+                .css("top", tile.y * Dyna.ui.LevelView.tileSize)
+                [0]);
+        }
+        this.jContainer.append(fragment);
     };
 
     Dyna.ui.ExplosionView = ExplosionView;
