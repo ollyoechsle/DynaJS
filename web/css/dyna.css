@@ -26,10 +26,18 @@ body {
 
 .tile.wall {
     background: url(../gfx/tiles/wall.png) no-repeat;
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    z-index: 50;
 }
 
 .tile.block {
     background: url(../gfx/tiles/crate.png) no-repeat;
+    -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    z-index: 50;
 }
 
 /* Players */
