@@ -46,7 +46,7 @@
             var bomb = new Dyna.model.Bomb(this.x, this.y);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
-            Dyna.app.GlobalEvents.fire(Player.LAID_BOMB, bomb);
+            this.fire(Player.LAID_BOMB, bomb);
         }
 
     };

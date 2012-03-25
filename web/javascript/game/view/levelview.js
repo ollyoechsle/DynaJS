@@ -34,8 +34,9 @@
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
+        this.level.on(Dyna.model.Level.MAP_UPDATED, this.updateAll.bind(this));
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        Dyna.app.GlobalEvents.on(Dyna.model.Player.LAID_BOMB, this._handleBombLaid.bind(this));
+        this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.mapView = this.mapViewFactory(this.level.map)
     };
 

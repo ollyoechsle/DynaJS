@@ -241,15 +241,53 @@ window.Dyna = {
         window.setTimeout(this.explode.bind(this), 5 * 1000);
     };
 
+    Bomb.prototype.getExplosion = function() {
+        var explosion = new Dyna.model.Explosion();
+        explosion.addAffectedTile(this.x, this.y);
+        explosion.addAffectedTile(this.x + 1, this.y);
+        explosion.addAffectedTile(this.x - 1, this.y);
+        explosion.addAffectedTile(this.x, this.y + 1);
+        explosion.addAffectedTile(this.x, this.y - 1);
+        return explosion;
+    };
+
     Bomb.prototype.explode = function() {
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this);
+        this.fire(Bomb.EXPLODE, this.getExplosion());
     };
 
     /** @event */
     Bomb.EXPLODE = "explode";
 
     Dyna.model.Bomb = Bomb;
+
+})(window.Dyna);(function(Dyna) {
+
+    function Explosion() {
+        log("Creating explosion");
+        this.tilesAffected = [];
+    }
+
+    Explosion.prototype.tilesAffected = null;
+
+    Explosion.prototype.addAffectedTile = function(x, y) {
+        this.tilesAffected.push({
+            x: x,
+            y: y
+        });
+    };
+
+    Explosion.prototype.isAffected = function(x, y) {
+        for (var i = 0; i < this.tilesAffected.length; i++) {
+            var tile = this.tilesAffected[i];
+            if (tile.x == x && tile.y == y) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    Dyna.model.Explosion = Explosion;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -275,10 +313,24 @@ window.Dyna = {
         if (this.map.findPositionFor(player)) {
             this.players.push(player);
             player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
+            player.on(Dyna.model.Player.LAID_BOMB, this.handleBombAdded.bind(this));
             this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
         }
+    };
+
+    Level.prototype.handleBombAdded = function(bomb) {
+        this.fire(Level.BOMB_ADDED, bomb);
+        bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExploded.bind(this));
+    };
+
+    Level.prototype.handleBombExploded = function(explosion) {
+        for (var i = 0; i < explosion.tilesAffected.length; i++) {
+            var tile = explosion.tilesAffected[i];
+            this.map.destroy(tile.x, tile.y);
+        }
+        this.fire(Level.MAP_UPDATED);
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
@@ -287,7 +339,14 @@ window.Dyna = {
         }
     };
 
+    /** @event */
     Level.PLAYER_ADDED = "playerAdded";
+
+    /** @event */
+    Level.BOMB_ADDED = "bombAdded";
+
+    /** @event */
+    Level.MAP_UPDATED = "mapUpdated";
 
     Dyna.model.Level = Level;
 
@@ -360,6 +419,13 @@ window.Dyna = {
         }
     };
 
+    Map.prototype.destroy = function(x, y) {
+        var tile = this.tileAt(x, y);
+        if (tile && tile == Map.BLOCK) {
+            this.data[x][y] = Map.EARTH;
+        }
+    };
+
     Map.prototype.tileAt = function(x, y) {
         if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
             return null;
@@ -426,7 +492,7 @@ window.Dyna = {
             var bomb = new Dyna.model.Bomb(this.x, this.y);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
-            Dyna.app.GlobalEvents.fire(Player.LAID_BOMB, bomb);
+            this.fire(Player.LAID_BOMB, bomb);
         }
 
     };
@@ -520,8 +586,9 @@ window.Dyna = {
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
+        this.level.on(Dyna.model.Level.MAP_UPDATED, this.updateAll.bind(this));
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
-        Dyna.app.GlobalEvents.on(Dyna.model.Player.LAID_BOMB, this._handleBombLaid.bind(this));
+        this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.mapView = this.mapViewFactory(this.level.map)
     };
 

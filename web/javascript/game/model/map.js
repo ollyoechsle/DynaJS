@@ -67,6 +67,13 @@
         }
     };
 
+    Map.prototype.destroy = function(x, y) {
+        var tile = this.tileAt(x, y);
+        if (tile && tile == Map.BLOCK) {
+            this.data[x][y] = Map.EARTH;
+        }
+    };
+
     Map.prototype.tileAt = function(x, y) {
         if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
             return null;

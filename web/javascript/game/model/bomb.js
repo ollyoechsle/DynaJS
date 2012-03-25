@@ -25,9 +25,19 @@
         window.setTimeout(this.explode.bind(this), 5 * 1000);
     };
 
+    Bomb.prototype.getExplosion = function() {
+        var explosion = new Dyna.model.Explosion();
+        explosion.addAffectedTile(this.x, this.y);
+        explosion.addAffectedTile(this.x + 1, this.y);
+        explosion.addAffectedTile(this.x - 1, this.y);
+        explosion.addAffectedTile(this.x, this.y + 1);
+        explosion.addAffectedTile(this.x, this.y - 1);
+        return explosion;
+    };
+
     Bomb.prototype.explode = function() {
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this);
+        this.fire(Bomb.EXPLODE, this.getExplosion());
     };
 
     /** @event */
