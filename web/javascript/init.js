@@ -22,7 +22,7 @@
                 mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
                 playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
                 bombViewFactory = function(bomb) { return new Dyna.ui.BombView("#level .players", bomb) },
-                explosionViewFactory = function(explosion) { return new Dyna.ui.ExplosionView("#level .explosions", explosion) },
+                explosionViewFactory = function(explosion) { return new Dyna.ui.ExplosionView("#level .explosions", explosion, map) },
                 levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
 
         // controller

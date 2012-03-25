@@ -71,11 +71,16 @@
         }
     };
 
+    Map.prototype.inBounds = function(x, y) {
+        return !(x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1);
+    };
+
     Map.prototype.tileAt = function(x, y) {
-        if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
+        if (this.inBounds(x, y)) {
+            return this.data[x][y];
+        } else {
             return null;
         }
-        return this.data[x][y];
     };
 
     Map.prototype.isFree = function(x, y) {
