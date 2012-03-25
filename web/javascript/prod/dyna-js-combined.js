@@ -545,7 +545,7 @@ window.Dyna = {
     };
 
     BombView.prototype.showExplosion = function() {
-        this.jBomb.removeClass("ticking").addClass("exploded");
+        this.jBomb.removeClass("ticking").addClass("exploded" + (parseInt(Math.random() * 3) + 1));
     };
 
     Dyna.ui.BombView = BombView;

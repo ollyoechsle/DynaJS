@@ -110,8 +110,16 @@ body {
     -moz-animation-iteration-count: infinite;
 }
 
-.bomb.exploded {
+.bomb.exploded1 {
     background: url(../gfx/bombs/scorch1.png) no-repeat;
+}
+
+.bomb.exploded2 {
+    background: url(../gfx/bombs/scorch2.png) no-repeat;
+}
+
+.bomb.exploded3 {
+    background: url(../gfx/bombs/scorch3.png) no-repeat;
 }
 
 @-moz-keyframes ticking
