@@ -10,6 +10,7 @@
         this.x = x;
         this.y = y;
         this.exploded = false;
+        this.power = 2;
 
         this.startTicking();
 
@@ -20,24 +21,15 @@
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
+    Bomb.prototype.power = 0;
 
     Bomb.prototype.startTicking = function() {
         window.setTimeout(this.explode.bind(this), 3 * 1000);
     };
 
-    Bomb.prototype.getExplosion = function() {
-        var explosion = new Dyna.model.Explosion();
-        explosion.addAffectedTile(this.x, this.y);
-        explosion.addAffectedTile(this.x + 1, this.y);
-        explosion.addAffectedTile(this.x - 1, this.y);
-        explosion.addAffectedTile(this.x, this.y + 1);
-        explosion.addAffectedTile(this.x, this.y - 1);
-        return explosion;
-    };
-
     Bomb.prototype.explode = function() {
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this.getExplosion());
+        this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
     };
 
     /** @event */

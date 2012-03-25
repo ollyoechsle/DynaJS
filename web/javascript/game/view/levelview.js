@@ -39,7 +39,7 @@
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
 
-        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this._handleExplosion.bind(this));
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this._handleExplosion.bind(this));
 
         this.mapView = this.mapViewFactory(this.level.map)
     };

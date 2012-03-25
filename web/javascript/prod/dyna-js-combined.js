@@ -229,6 +229,7 @@ window.Dyna = {
         this.x = x;
         this.y = y;
         this.exploded = false;
+        this.power = 2;
 
         this.startTicking();
 
@@ -239,24 +240,15 @@ window.Dyna = {
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
+    Bomb.prototype.power = 0;
 
     Bomb.prototype.startTicking = function() {
         window.setTimeout(this.explode.bind(this), 3 * 1000);
     };
 
-    Bomb.prototype.getExplosion = function() {
-        var explosion = new Dyna.model.Explosion();
-        explosion.addAffectedTile(this.x, this.y);
-        explosion.addAffectedTile(this.x + 1, this.y);
-        explosion.addAffectedTile(this.x - 1, this.y);
-        explosion.addAffectedTile(this.x, this.y + 1);
-        explosion.addAffectedTile(this.x, this.y - 1);
-        return explosion;
-    };
-
     Bomb.prototype.explode = function() {
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this.getExplosion());
+        this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
     };
 
     /** @event */
@@ -328,12 +320,37 @@ window.Dyna = {
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExploded.bind(this));
     };
 
-    Level.prototype.handleBombExploded = function(explosion) {
+    Level.prototype.handleBombExploded = function(x, y, power) {
+
+        var explosion = new Dyna.model.Explosion();
+
+        // east
+        for (var ex = x; ex < x + power; ex++) {
+            explosion.addAffectedTile(ex, y);
+        }
+
+        // west
+        for (var ex = x; ex >= x - power; ex--) {
+            explosion.addAffectedTile(ex, y);
+        }
+
+        // south
+        for (var ey = y; ey < y + power; ey++) {
+            explosion.addAffectedTile(x, ey);
+        }
+
+        // south
+        for (var ey = y; ey >= y - power; ey--) {
+            explosion.addAffectedTile(x, ey);
+        }
+
         for (var i = 0; i < explosion.tilesAffected.length; i++) {
             var tile = explosion.tilesAffected[i];
             this.map.destroy(tile.x, tile.y);
-        }     
-        Dyna.app.GlobalEvents.fire(Dyna.model.Bomb.EXPLODE, explosion);
+        }
+
+        Dyna.app.GlobalEvents.fire(Level.EXPLOSION, explosion);
+        
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
@@ -347,6 +364,9 @@ window.Dyna = {
 
     /** @event */
     Level.BOMB_ADDED = "bombAdded";
+
+    /** @event */
+    Level.EXPLOSION = "bombExploded";
 
     Dyna.model.Level = Level;
 
@@ -471,7 +491,7 @@ window.Dyna = {
     Player.prototype.keyboardInput = null;
 
     Player.prototype.initialise = function() {
-        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.possiblyGetBlownUp.bind(this));
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.possiblyGetBlownUp.bind(this));
     };
 
     Player.prototype.possiblyGetBlownUp = function(explosion) {
@@ -648,7 +668,7 @@ window.Dyna = {
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
 
-        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this._handleExplosion.bind(this));
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this._handleExplosion.bind(this));
 
         this.mapView = this.mapViewFactory(this.level.map)
     };
@@ -698,7 +718,7 @@ window.Dyna = {
         log("Initialising map view");
         this.initialiseMap();
 
-        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.updateAll.bind(this));
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.updateAll.bind(this));
 
     };
 

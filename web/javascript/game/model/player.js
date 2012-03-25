@@ -23,7 +23,7 @@
     Player.prototype.keyboardInput = null;
 
     Player.prototype.initialise = function() {
-        Dyna.app.GlobalEvents.on(Dyna.model.Bomb.EXPLODE, this.possiblyGetBlownUp.bind(this));
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.possiblyGetBlownUp.bind(this));
     };
 
     Player.prototype.possiblyGetBlownUp = function(explosion) {
