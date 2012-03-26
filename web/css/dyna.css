@@ -117,7 +117,7 @@ body {
 .bomb {
     width: 30px;
     height: 30px;
-    background: black;
+    background: url(../gfx/bombs/bomb.png) no-repeat;
     position: absolute;
 
     -moz-border-radius: 30px;
@@ -130,7 +130,7 @@ body {
     -moz-animation-iteration-count: infinite;
 
     -webkit-animation: ticking 1s;
-    -webkit-animation-iteration-count: infinite;    
+    -webkit-animation-iteration-count: infinite;
 }
 
 .bomb.exploded1 {
@@ -168,7 +168,7 @@ body {
 
     -moz-border-radius: 30px;
     -webkit-border-radius: 30px;
-    
+
     -moz-animation: flame 1s;
     -webkit-animation: flame 1s;
 }
