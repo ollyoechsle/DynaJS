@@ -22,12 +22,23 @@
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
     Bomb.prototype.power = 0;
+    Bomb.prototype.timer = null;
 
     Bomb.prototype.startTicking = function() {
-        window.setTimeout(this.explode.bind(this), 3 * 1000);
+        this.timer = window.setTimeout(this.explode.bind(this), 3 * 1000);
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.triggerChainReaction.bind(this))
+    };
+
+    Bomb.prototype.triggerChainReaction = function(explosion) {
+        if (explosion.affects(this.x, this.y) && this.timer) {
+            window.clearTimeout(this.timer);
+            window.setTimeout(this.explode.bind(this), 300);
+            this.explode();
+        }
     };
 
     Bomb.prototype.explode = function() {
+        this.timer = null;
         this.exploded = true;
         this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
     };

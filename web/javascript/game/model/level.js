@@ -36,27 +36,7 @@
 
     Level.prototype.handleBombExploded = function(x, y, power) {
 
-        var explosion = new Dyna.model.Explosion();
-
-        // east
-        for (var ex = x; ex < x + power; ex++) {
-            explosion.addAffectedTile(ex, y);
-        }
-
-        // west
-        for (var ex = x; ex >= x - power; ex--) {
-            explosion.addAffectedTile(ex, y);
-        }
-
-        // south
-        for (var ey = y; ey < y + power; ey++) {
-            explosion.addAffectedTile(x, ey);
-        }
-
-        // south
-        for (var ey = y; ey >= y - power; ey--) {
-            explosion.addAffectedTile(x, ey);
-        }
+        var explosion = Dyna.model.Explosion.create(this.map, x, y, power);
 
         for (var i = 0; i < explosion.tilesAffected.length; i++) {
             var tile = explosion.tilesAffected[i];
@@ -64,7 +44,7 @@
         }
 
         Dyna.app.GlobalEvents.fire(Level.EXPLOSION, explosion);
-        
+
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {

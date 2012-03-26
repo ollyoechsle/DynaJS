@@ -241,12 +241,23 @@ window.Dyna = {
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
     Bomb.prototype.power = 0;
+    Bomb.prototype.timer = null;
 
     Bomb.prototype.startTicking = function() {
-        window.setTimeout(this.explode.bind(this), 3 * 1000);
+        this.timer = window.setTimeout(this.explode.bind(this), 3 * 1000);
+        Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.triggerChainReaction.bind(this))
+    };
+
+    Bomb.prototype.triggerChainReaction = function(explosion) {
+        if (explosion.affects(this.x, this.y) && this.timer) {
+            window.clearTimeout(this.timer);
+            window.setTimeout(this.explode.bind(this), 300);
+            this.explode();
+        }
     };
 
     Bomb.prototype.explode = function() {
+        this.timer = null;
         this.exploded = true;
         this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
     };
@@ -280,6 +291,40 @@ window.Dyna = {
             }
         }
         return false;
+    };
+
+    Explosion.create = function(map, x, y, power) {
+        log("Creating explosion", x, y, power);
+        var explosion = new Explosion();
+
+        for (var key in directions) {
+            var direction = directions[key];
+
+            for (var i = 0; i <= power; i++) {
+                var mx = x + (direction.x * i);
+                var my = y + (direction.y * i);
+                var tile = map.tileAt(mx, my);
+                if (tile && tile != Dyna.model.Map.WALL) {
+                    explosion.addAffectedTile(mx, my);
+                    if (tile == Dyna.model.Map.BLOCK) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+        }
+
+        return explosion;
+
+    };
+
+    var directions = {
+        "east": {x: -1, y: 0},
+        "west": {x: +1, y: 0},
+        "north": {x: 0, y: -1},
+        "south": {x: 0, y: +1}
     };
 
     Dyna.model.Explosion = Explosion;
@@ -322,27 +367,7 @@ window.Dyna = {
 
     Level.prototype.handleBombExploded = function(x, y, power) {
 
-        var explosion = new Dyna.model.Explosion();
-
-        // east
-        for (var ex = x; ex < x + power; ex++) {
-            explosion.addAffectedTile(ex, y);
-        }
-
-        // west
-        for (var ex = x; ex >= x - power; ex--) {
-            explosion.addAffectedTile(ex, y);
-        }
-
-        // south
-        for (var ey = y; ey < y + power; ey++) {
-            explosion.addAffectedTile(x, ey);
-        }
-
-        // south
-        for (var ey = y; ey >= y - power; ey--) {
-            explosion.addAffectedTile(x, ey);
-        }
+        var explosion = Dyna.model.Explosion.create(this.map, x, y, power);
 
         for (var i = 0; i < explosion.tilesAffected.length; i++) {
             var tile = explosion.tilesAffected[i];
@@ -350,7 +375,7 @@ window.Dyna = {
         }
 
         Dyna.app.GlobalEvents.fire(Level.EXPLOSION, explosion);
-        
+
     };
 
     Level.prototype.handlePlayerMove = function(player, x, y) {
@@ -616,13 +641,20 @@ window.Dyna = {
         for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
             var tile = this.explosion.tilesAffected[i];
             if (this.map.inBounds(tile.x, tile.y)) {
-            fragment.appendChild(jQuery("<div class='fireBall'></div>")
-                .css("left", tile.x * Dyna.ui.LevelView.tileSize)
-                .css("top", tile.y * Dyna.ui.LevelView.tileSize)
-                [0]);
+                fragment.appendChild(jQuery("<div class='fireBall'></div>")
+                        .css("left", tile.x * Dyna.ui.LevelView.tileSize)
+                        .css("top", tile.y * Dyna.ui.LevelView.tileSize)
+                        [0]);
             }
         }
         this.jContainer.append(fragment);
+        this.boom();
+    };
+
+    ExplosionView.prototype.boom = function() {
+        log("BOOM!");
+        var snd = new Audio("snd/explosion.wav");
+        snd.play();
     };
 
     Dyna.ui.ExplosionView = ExplosionView;

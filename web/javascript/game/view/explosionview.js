@@ -20,20 +20,21 @@
         for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
             var tile = this.explosion.tilesAffected[i];
             if (this.map.inBounds(tile.x, tile.y)) {
-            fragment.appendChild(jQuery("<div class='fireBall'></div>")
-                .css("left", tile.x * Dyna.ui.LevelView.tileSize)
-                .css("top", tile.y * Dyna.ui.LevelView.tileSize)
-                [0]);
+                fragment.appendChild(jQuery("<div class='fireBall'></div>")
+                        .css("left", tile.x * Dyna.ui.LevelView.tileSize)
+                        .css("top", tile.y * Dyna.ui.LevelView.tileSize)
+                        [0]);
             }
         }
         this.jContainer.append(fragment);
-       this.boom();
+        this.boom();
     };
 
-   ExplosionView.prototype.boom = function() {
-      var snd = new Audio("snd/explosion.wav");
-      snd.play();
-   };
+    ExplosionView.prototype.boom = function() {
+        log("BOOM!");
+        var snd = new Audio("snd/explosion.wav");
+        snd.play();
+    };
 
     Dyna.ui.ExplosionView = ExplosionView;
 
