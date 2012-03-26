@@ -27,7 +27,13 @@
             }
         }
         this.jContainer.append(fragment);
+       this.boom();
     };
+
+   ExplosionView.prototype.boom = function() {
+      var snd = new Audio("snd/explosion.wav");
+      snd.play();
+   };
 
     Dyna.ui.ExplosionView = ExplosionView;
 
