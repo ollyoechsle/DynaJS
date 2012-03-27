@@ -40,6 +40,11 @@ body {
     z-index: 50;
 }
 
+.tile.powerup {
+    background: url(../gfx/powerups/power.png) no-repeat;
+    z-index: 50;
+}
+
 /* Players */
 .player {
     position: absolute;

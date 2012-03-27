@@ -37,7 +37,7 @@
                 var tile = map.tileAt(mx, my);
                 if (tile && tile != Dyna.model.Map.WALL) {
                     explosion.addAffectedTile(mx, my);
-                    if (tile == Dyna.model.Map.BLOCK) {
+                    if (tile.solid) {
                         break;
                     }
                 } else {

@@ -19,6 +19,7 @@
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
+    Player.prototype.power = 1;
     Player.prototype.bombsAvailable = 0;
     Player.prototype.keyboardInput = null;
 
@@ -42,6 +43,10 @@
         return this;
     };
 
+    Player.prototype.powerUp = function() {
+        this.power++;
+    };
+
     Player.prototype.move = function(dx, dy, direction) {
         this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
         this.fire(Player.DIRECTION_CHANGED, direction);
@@ -57,7 +62,7 @@
 
         log("Laying bomb");
         if (this.bombsLaid < this.bombsAvailable) {
-            var bomb = new Dyna.model.Bomb(this.x, this.y);
+            var bomb = new Dyna.model.Bomb(this.x, this.y, this.power);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
             this.fire(Player.LAID_BOMB, bomb);

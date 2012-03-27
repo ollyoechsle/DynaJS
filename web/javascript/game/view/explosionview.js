@@ -31,7 +31,6 @@
     };
 
     ExplosionView.prototype.boom = function() {
-        log("BOOM!");
         var snd = new Audio("snd/explosion.wav");
         snd.play();
     };

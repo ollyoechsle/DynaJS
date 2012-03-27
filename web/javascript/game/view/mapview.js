@@ -30,9 +30,9 @@
         this.tileTemplate = jQuery("<div class='tile'></div>");
     };
 
-    MapView.prototype.getTile = function(tileClass, x, y) {
+    MapView.prototype.getTile = function(tileObj, x, y) {
         return this.tileTemplate.clone()
-                .addClass(tileClass)
+                .addClass(tileObj.type)
                 .css("left", x * Dyna.ui.LevelView.tileSize)
                 .css("top", y * Dyna.ui.LevelView.tileSize)
     };

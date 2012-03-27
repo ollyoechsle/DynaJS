@@ -1,15 +1,10 @@
 (function(Dyna) {
 
-    /**
-     * Constructor
-     */
     function Map(width, height) {
-
         this.width = width;
         this.height = height;
         this.playerPositions = [];
-        this.build();
-
+        this._createMap();
     }
 
     Map.prototype.width = null;
@@ -17,25 +12,27 @@
     Map.prototype.data = null;
     Map.prototype.playerPositions = null;
 
-    Map.prototype.build = function() {
-        var data = [], row;
+    Map.prototype._createMap = function() {
+        var data = [], row, x, y;
 
-        for (var y = 0; y < this.height; y++) {
-
+        for (y = 0; y < this.height; y++) {
             row = [];
-
-            for (var x = 0; x < this.width; x++) {
-
+            for (x = 0; x < this.width; x++) {
                 if (x % 2 == 1 && y % 2 == 1) {
                     row.push(Map.WALL);
                 } else {
-                    row.push(Math.random() < 0.75 ? Map.BLOCK : Map.EARTH);
+                    if (Math.random() < 0.75) {
+                        if (Math.random() < 0.1) {
+                            row.push(Map.HIDDEN_POWERUP);
+                        } else {
+                            row.push(Map.BLOCK)
+                        }
+                    } else {
+                        row.push(Map.EARTH);
+                    }
                 }
-
             }
-
             data.push(row);
-
         }
 
         this.playerPositions.push({x : 0, y : 0});
@@ -66,8 +63,8 @@
 
     Map.prototype.destroy = function(x, y) {
         var tile = this.tileAt(x, y);
-        if (tile && tile == Map.BLOCK) {
-            this.data[x][y] = Map.EARTH;
+        if (tile && tile.destroy) {
+            this.data[x][y] = tile.destroy();
         }
     };
 
@@ -85,12 +82,54 @@
 
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
-        return tile && tile == Map.EARTH;
+        return tile && !tile.solid;
     };
 
-    Map.EARTH = "earth";
-    Map.WALL = "wall";
-    Map.BLOCK = "block";
+    Map.prototype.steppedOnLevelUp = function(x, y) {
+        var tile = this.tileAt(x, y);
+        if (tile && tile == Map.POWERUP) {
+            log("Level up");
+            this.data[x][y] = tile.destroy();
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+
+    Map.EARTH = {
+        solid: false,
+        type: "earth"
+    };
+
+    Map.WALL = {
+        solid: true,
+        type: "wall"
+    };
+
+    Map.BLOCK = {
+        type: "block",
+        solid: true,
+        destroy: function() {
+            return Map.EARTH;
+        }
+    };
+
+    Map.POWERUP = {
+        type: "powerup",
+        solid: false,
+        destroy: function() {
+            return Map.EARTH;
+        }
+    };
+
+    Map.HIDDEN_POWERUP = {
+        type: "block",
+        solid: true,
+        destroy: function() {
+            return Map.POWERUP;
+        }
+    };
 
     Dyna.model.Map = Map;
 

@@ -3,14 +3,14 @@
     /**
      * Constructor
      */
-    function Bomb(x, y) {
+    function Bomb(x, y, power) {
 
         this.superclass.constructor.call(this);
         log("Creating bomb");
         this.x = x;
         this.y = y;
         this.exploded = false;
-        this.power = 2;
+        this.power = power;
 
         this.startTicking();
 

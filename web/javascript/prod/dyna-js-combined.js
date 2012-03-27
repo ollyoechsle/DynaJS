@@ -222,14 +222,14 @@ window.Dyna = {
     /**
      * Constructor
      */
-    function Bomb(x, y) {
+    function Bomb(x, y, power) {
 
         this.superclass.constructor.call(this);
         log("Creating bomb");
         this.x = x;
         this.y = y;
         this.exploded = false;
-        this.power = 2;
+        this.power = power;
 
         this.startTicking();
 
@@ -306,7 +306,7 @@ window.Dyna = {
                 var tile = map.tileAt(mx, my);
                 if (tile && tile != Dyna.model.Map.WALL) {
                     explosion.addAffectedTile(mx, my);
-                    if (tile == Dyna.model.Map.BLOCK) {
+                    if (tile.solid) {
                         break;
                     }
                 } else {
@@ -381,6 +381,13 @@ window.Dyna = {
     Level.prototype.handlePlayerMove = function(player, x, y) {
         if (this.map.isFree(x, y)) {
             player.moveTo(x, y);
+            if (this.map.steppedOnLevelUp(x, y)) {
+                log("Level up");
+                this.fire(Level.LEVEL_UP, player);
+                player.powerUp();
+            } else {
+                log("Didn't level up");
+            }
         }
     };
 
@@ -393,20 +400,18 @@ window.Dyna = {
     /** @event */
     Level.EXPLOSION = "bombExploded";
 
+    /** @event */
+    Level.LEVEL_UP = "levelUp";
+
     Dyna.model.Level = Level;
 
 })(window.Dyna);(function(Dyna) {
 
-    /**
-     * Constructor
-     */
     function Map(width, height) {
-
         this.width = width;
         this.height = height;
         this.playerPositions = [];
-        this.build();
-
+        this._createMap();
     }
 
     Map.prototype.width = null;
@@ -414,25 +419,27 @@ window.Dyna = {
     Map.prototype.data = null;
     Map.prototype.playerPositions = null;
 
-    Map.prototype.build = function() {
-        var data = [], row;
+    Map.prototype._createMap = function() {
+        var data = [], row, x, y;
 
-        for (var y = 0; y < this.height; y++) {
-
+        for (y = 0; y < this.height; y++) {
             row = [];
-
-            for (var x = 0; x < this.width; x++) {
-
+            for (x = 0; x < this.width; x++) {
                 if (x % 2 == 1 && y % 2 == 1) {
                     row.push(Map.WALL);
                 } else {
-                    row.push(Math.random() < 0.75 ? Map.BLOCK : Map.EARTH);
+                    if (Math.random() < 0.75) {
+                        if (Math.random() < 0.1) {
+                            row.push(Map.HIDDEN_POWERUP);
+                        } else {
+                            row.push(Map.BLOCK)
+                        }
+                    } else {
+                        row.push(Map.EARTH);
+                    }
                 }
-
             }
-
             data.push(row);
-
         }
 
         this.playerPositions.push({x : 0, y : 0});
@@ -463,8 +470,8 @@ window.Dyna = {
 
     Map.prototype.destroy = function(x, y) {
         var tile = this.tileAt(x, y);
-        if (tile && tile == Map.BLOCK) {
-            this.data[x][y] = Map.EARTH;
+        if (tile && tile.destroy) {
+            this.data[x][y] = tile.destroy();
         }
     };
 
@@ -482,12 +489,54 @@ window.Dyna = {
 
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
-        return tile && tile == Map.EARTH;
+        return tile && !tile.solid;
     };
 
-    Map.EARTH = "earth";
-    Map.WALL = "wall";
-    Map.BLOCK = "block";
+    Map.prototype.steppedOnLevelUp = function(x, y) {
+        var tile = this.tileAt(x, y);
+        if (tile && tile == Map.POWERUP) {
+            log("Level up");
+            this.data[x][y] = tile.destroy();
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+
+    Map.EARTH = {
+        solid: false,
+        type: "earth"
+    };
+
+    Map.WALL = {
+        solid: true,
+        type: "wall"
+    };
+
+    Map.BLOCK = {
+        type: "block",
+        solid: true,
+        destroy: function() {
+            return Map.EARTH;
+        }
+    };
+
+    Map.POWERUP = {
+        type: "powerup",
+        solid: false,
+        destroy: function() {
+            return Map.EARTH;
+        }
+    };
+
+    Map.HIDDEN_POWERUP = {
+        type: "block",
+        solid: true,
+        destroy: function() {
+            return Map.POWERUP;
+        }
+    };
 
     Dyna.model.Map = Map;
 
@@ -512,6 +561,7 @@ window.Dyna = {
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
+    Player.prototype.power = 1;
     Player.prototype.bombsAvailable = 0;
     Player.prototype.keyboardInput = null;
 
@@ -535,6 +585,10 @@ window.Dyna = {
         return this;
     };
 
+    Player.prototype.powerUp = function() {
+        this.power++;
+    };
+
     Player.prototype.move = function(dx, dy, direction) {
         this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
         this.fire(Player.DIRECTION_CHANGED, direction);
@@ -550,7 +604,7 @@ window.Dyna = {
 
         log("Laying bomb");
         if (this.bombsLaid < this.bombsAvailable) {
-            var bomb = new Dyna.model.Bomb(this.x, this.y);
+            var bomb = new Dyna.model.Bomb(this.x, this.y, this.power);
             this.bombsLaid++;
             bomb.on(Dyna.model.Bomb.EXPLODE, this._handleMyBombExploded.bind(this));
             this.fire(Player.LAID_BOMB, bomb);
@@ -652,7 +706,6 @@ window.Dyna = {
     };
 
     ExplosionView.prototype.boom = function() {
-        log("BOOM!");
         var snd = new Audio("snd/explosion.wav");
         snd.play();
     };
@@ -699,6 +752,7 @@ window.Dyna = {
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
+        this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
 
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this._handleExplosion.bind(this));
 
@@ -711,6 +765,12 @@ window.Dyna = {
 
     LevelView.prototype._handleExplosion = function(explosion) {
         this.explosionViewFactory(explosion);
+    };
+
+    LevelView.prototype._handlePlayerLevelUp = function(player) {
+        var snd = new Audio("snd/powerup.wav");
+        snd.play();
+        this.mapView.updateAll(this.level);
     };
 
     LevelView.prototype._createPlayerView = function(player) {
@@ -761,9 +821,9 @@ window.Dyna = {
         this.tileTemplate = jQuery("<div class='tile'></div>");
     };
 
-    MapView.prototype.getTile = function(tileClass, x, y) {
+    MapView.prototype.getTile = function(tileObj, x, y) {
         return this.tileTemplate.clone()
-                .addClass(tileClass)
+                .addClass(tileObj.type)
                 .css("left", x * Dyna.ui.LevelView.tileSize)
                 .css("top", y * Dyna.ui.LevelView.tileSize)
     };

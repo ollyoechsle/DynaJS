@@ -38,6 +38,7 @@
         LevelView.tileSize = 30;
         this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
+        this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
 
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this._handleExplosion.bind(this));
 
@@ -50,6 +51,12 @@
 
     LevelView.prototype._handleExplosion = function(explosion) {
         this.explosionViewFactory(explosion);
+    };
+
+    LevelView.prototype._handlePlayerLevelUp = function(player) {
+        var snd = new Audio("snd/powerup.wav");
+        snd.play();
+        this.mapView.updateAll(this.level);
     };
 
     LevelView.prototype._createPlayerView = function(player) {
