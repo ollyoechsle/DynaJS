@@ -43,6 +43,13 @@ body {
 .tile.powerup {
     background: url(../gfx/powerups/power.png) no-repeat;
     z-index: 50;
+
+    -moz-animation: glowing 1s;
+    -moz-animation-iteration-count: infinite;
+
+    -webkit-animation: glowing 1s;
+    -webkit-animation-iteration-count: infinite;
+
 }
 
 /* Players */
@@ -220,5 +227,21 @@ background-color: red;
 opacity: 0.0
 -webkit-transform: scale(0.2 )
 }
+}
+
+/* Power Ups */
+
+@-moz-keyframes glowing
+{
+0%   {-moz-box-shadow: 0 0 5px white}
+50%  {-moz-box-shadow: 0 0 0 white}
+100%  {-moz-box-shadow: 0 0 5px white}
+}
+
+@-webkit-keyframes glowing
+{
+0%   {-webkit-box-shadow: 0 0 5px white}
+50%  {-webkit-box-shadow: 0 0 0 white}
+100%  {-webkit-box-shadow: 0 0 5px white}
 }
 
