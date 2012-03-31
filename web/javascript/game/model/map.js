@@ -1,10 +1,10 @@
 (function(Dyna) {
 
-    function Map(width, height) {
+    function Map(width, height, settings) {
         this.width = width;
         this.height = height;
         this.playerPositions = [];
-        this._createMap();
+        this._createMap(settings);
     }
 
     Map.prototype.width = null;
@@ -12,7 +12,7 @@
     Map.prototype.data = null;
     Map.prototype.playerPositions = null;
 
-    Map.prototype._createMap = function() {
+    Map.prototype._createMap = function(settings) {
         var data = [], row, x, y;
 
         for (y = 0; y < this.height; y++) {
@@ -21,8 +21,8 @@
                 if (x % 2 == 1 && y % 2 == 1) {
                     row.push(Map.WALL);
                 } else {
-                    if (Math.random() < 0.75) {
-                        if (Math.random() < 0.1) {
+                    if (Math.random() < settings.blocks) {
+                        if (Math.random() < settings.powerups) {
                             row.push(Map.HIDDEN_POWERUP);
                         } else {
                             row.push(Map.BLOCK)

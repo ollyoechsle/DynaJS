@@ -14,7 +14,10 @@
 
         // model
         var
-                map = new Dyna.model.Map(11, 11),
+                map = new Dyna.model.Map(11, 11, {
+                    blocks: 0.75,
+                    powerups: 0.10
+                }),
                 level = new Dyna.model.Level("Level 1", map);
 
         // view
@@ -49,6 +52,8 @@
                 })));
 
         game.start();
+
+        window.pathfinder = new Dyna.model.PathFinder(map, 0, 0);
 
     }
 
