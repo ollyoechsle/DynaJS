@@ -53,8 +53,6 @@
 
         game.start();
 
-        window.pathfinder = new Dyna.model.PathFinder(map, 0, 0);
-
     }
 
     jQuery(document).ready(init);
