@@ -45,6 +45,15 @@
     PathFinder.prototype.completePathsFound = null;
 
     /**
+     * Finds all the available tiles that a player could visit from the current location
+     */
+    PathFinder.prototype.getAvailableDestinations = function() {
+
+        // TODO: Implement this
+
+    };
+
+    /**
      * Finds the quickest path to the given coordinates. If there is no path, then the function returns null.
      * @param {Number} x The X coordinate of the destination, zero based
      * @param {Number} y The Y coordinate of the destination, zero based
@@ -96,7 +105,7 @@
     PathFinder.prototype._findPath = function(cx, cy, encodedDestination, currentPath) {
 
         var encodedCurrent = encodePath(cx, cy);
-        currentPath = currentPath + encodedCurrent;
+        currentPath = currentPath + encodedCurrent + ",";
 
         // check if we've reached destination
         if (encodedCurrent === encodedDestination) {
@@ -120,6 +129,13 @@
 
     var encodePath = function(x, y) {
         return letters[x] + y;
+    };
+
+    var decodePath = function(str) {
+        return {
+            x: letters.indexOf(str[0]),
+            y: str[1]
+        }
     };
 
     var directions = {

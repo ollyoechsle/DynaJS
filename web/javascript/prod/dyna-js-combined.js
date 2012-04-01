@@ -182,6 +182,15 @@ window.Dyna = {
     PathFinder.prototype.completePathsFound = null;
 
     /**
+     * Finds all the available tiles that a player could visit from the current location
+     */
+    PathFinder.prototype.getAvailableDestinations = function() {
+
+        // TODO: Implement this
+
+    };
+
+    /**
      * Finds the quickest path to the given coordinates. If there is no path, then the function returns null.
      * @param {Number} x The X coordinate of the destination, zero based
      * @param {Number} y The Y coordinate of the destination, zero based
@@ -233,7 +242,7 @@ window.Dyna = {
     PathFinder.prototype._findPath = function(cx, cy, encodedDestination, currentPath) {
 
         var encodedCurrent = encodePath(cx, cy);
-        currentPath = currentPath + encodedCurrent;
+        currentPath = currentPath + encodedCurrent + ",";
 
         // check if we've reached destination
         if (encodedCurrent === encodedDestination) {
@@ -257,6 +266,13 @@ window.Dyna = {
 
     var encodePath = function(x, y) {
         return letters[x] + y;
+    };
+
+    var decodePath = function(str) {
+        return {
+            x: letters.indexOf(str[0]),
+            y: str[1]
+        }
     };
 
     var directions = {
@@ -1019,6 +1035,61 @@ window.Dyna = {
 })(window.Dyna, jQuery);(function(Dyna) {
 
     /**
+     * @constructor
+     * @param {Dyna.model.Player} player The player to control
+     */
+    function ComputerController(player, map) {
+        this.player = player;
+        this.map = map;
+        this.initialise();
+    }
+
+    /**
+     * The player to control
+     * @private
+     * @type {Dyna.model.Player}
+     */
+    ComputerController.prototype.player = null;
+
+    /**
+     * Reference to the map, so the controller can explore
+     * @private
+     * @type {Dyna.model.Map}
+     */
+    ComputerController.prototype.map = null;
+
+    /**
+     * Ensures that the controller will stop working if the player dies
+     * @private
+     */
+    ComputerController.prototype.initialise = function() {
+        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        window.setInterval(this.think.bind(this), ComputerController.SPEED);
+    };
+
+    /**
+     * Consider what to do with the player next
+     */
+    ComputerController.prototype.think = function() {
+        log("Thinking..");
+        var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y);
+        pathFinder.getAvailableDestinations();
+        //log(pathFinder.getPathTo(0,1));
+    };
+
+    /**
+     * Stops the computer controller from affecting the player
+     */
+    ComputerController.prototype.stopControlling = function() {
+    };
+
+    ComputerController.SPEED = 2000;
+
+    Dyna.app.ComputerController = ComputerController;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
      * Constructor
      */
     function Game(level, levelView) {
@@ -1130,15 +1201,8 @@ window.Dyna = {
                 game = new Dyna.app.Game(level, levelView),
                 player1 = new Player("Player 1"),
                 player2 = new Player("Player 2"),
-                humanController1 = new Dyna.app.HumanController(player1).withControls(
-                        new Dyna.util.KeyboardInput(keyboard, {
-                            "up" : Player.UP,
-                            "down" : Player.DOWN,
-                            "left" : Player.LEFT,
-                            "right" : Player.RIGHT,
-                            "enter" : Player.ENTER
-                        })),
-                humanController2 = new Dyna.app.HumanController(player2).withControls(
+                controller1 = new Dyna.app.ComputerController(player1, map),
+                controller2 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "w" : Player.UP,
                             "s" : Player.DOWN,
