@@ -70,9 +70,11 @@
 
         explore(this.startX, this.startY);
 
-        var paths = tiles.split(",");
-        paths.pop();
-        return paths ;
+        var availablePositions = [], encodedPaths = tiles.split(","), i, l;
+        for (i = 0, l = encodedPaths.length - 1; i < l; i++) {
+           availablePositions.push(decodePath(encodedPaths[i]))
+        }
+        return availablePositions;
 
     };
 
@@ -157,7 +159,7 @@
     var decodePath = function(str) {
         return {
             x: letters.indexOf(str[0]),
-            y: str[1]
+            y: +str[1]
         }
     };
 

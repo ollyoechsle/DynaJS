@@ -39,7 +39,23 @@
     ComputerController.prototype.think = function() {
         log("Thinking..");
         var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y);
-        log(pathFinder.getAvailableDestinations());
+
+        var potentialDestinations = pathFinder.getAvailableDestinations();
+
+        // choose the most useful destination
+        for (var i = 0; i < potentialDestinations.length; i++) {
+
+            var destination = potentialDestinations[i];
+
+            if (Math.random() < (1 / potentialDestinations.length)) {
+                log("Computer is moving to ", destination);
+                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, destination.x, destination.y);
+                break;
+            }
+
+        }
+
+        log(potentialDestinations);
     };
 
     /**

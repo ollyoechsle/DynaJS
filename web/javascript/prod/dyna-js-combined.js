@@ -207,9 +207,11 @@ window.Dyna = {
 
         explore(this.startX, this.startY);
 
-        var paths = tiles.split(",");
-        paths.pop();
-        return paths ;
+        var availablePositions = [], encodedPaths = tiles.split(","), i, l;
+        for (i = 0, l = encodedPaths.length - 1; i < l; i++) {
+           availablePositions.push(decodePath(encodedPaths[i]))
+        }
+        return availablePositions;
 
     };
 
@@ -294,7 +296,7 @@ window.Dyna = {
     var decodePath = function(str) {
         return {
             x: letters.indexOf(str[0]),
-            y: str[1]
+            y: +str[1]
         }
     };
 
@@ -1096,7 +1098,23 @@ window.Dyna = {
     ComputerController.prototype.think = function() {
         log("Thinking..");
         var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y);
-        log(pathFinder.getAvailableDestinations());
+
+        var potentialDestinations = pathFinder.getAvailableDestinations();
+
+        // choose the most useful destination
+        for (var i = 0; i < potentialDestinations.length; i++) {
+
+            var destination = potentialDestinations[i];
+
+            if (Math.random() < (1 / potentialDestinations.length)) {
+                log("Computer is moving to ", destination);
+                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, destination.x, destination.y);
+                break;
+            }
+
+        }
+
+        log(potentialDestinations);
     };
 
     /**
@@ -1221,7 +1239,7 @@ window.Dyna = {
         // controller
         var
                 game = new Dyna.app.Game(level, levelView),
-                player1 = new Player("Player 1"),
+                player1 = new Player("Computer 1"),
                 player2 = new Player("Player 2"),
                 controller1 = new Dyna.app.ComputerController(player1, map),
                 controller2 = new Dyna.app.HumanController(player2).withControls(
