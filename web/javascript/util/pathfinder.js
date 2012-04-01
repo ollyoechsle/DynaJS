@@ -49,7 +49,30 @@
      */
     PathFinder.prototype.getAvailableDestinations = function() {
 
-        // TODO: Implement this
+        var tiles = "", map = this.map;
+
+        function explore(cx, cy) {
+
+            var key, direction, nx, ny;
+
+            tiles = tiles + encodePath(cx, cy) + ",";
+
+            for (key in directions) {
+                direction = directions[key], nx = cx + direction.x, ny = cy + direction.y;
+                if (map.isFree(nx, ny)) {
+                    if (tiles.lastIndexOf(encodePath(nx, ny)) == -1) {
+                        explore(nx, ny);
+                    }
+                }
+            }
+
+        }
+
+        explore(this.startX, this.startY);
+
+        var paths = tiles.split(",");
+        paths.pop();
+        return paths ;
 
     };
 

@@ -39,8 +39,7 @@
     ComputerController.prototype.think = function() {
         log("Thinking..");
         var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y);
-        pathFinder.getAvailableDestinations();
-        //log(pathFinder.getPathTo(0,1));
+        log(pathFinder.getAvailableDestinations());
     };
 
     /**
