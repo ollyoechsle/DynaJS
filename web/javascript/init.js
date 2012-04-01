@@ -30,26 +30,28 @@
 
         // controller
         var
-                game = new Dyna.app.Game(level, levelView);
+                game = new Dyna.app.Game(level, levelView),
+                player1 = new Player("Player 1"),
+                player2 = new Player("Player 2"),
+                humanController1 = new Dyna.app.HumanController(player1).withControls(
+                        new Dyna.util.KeyboardInput(keyboard, {
+                            "up" : Player.UP,
+                            "down" : Player.DOWN,
+                            "left" : Player.LEFT,
+                            "right" : Player.RIGHT,
+                            "enter" : Player.ENTER
+                        })),
+                humanController2 = new Dyna.app.HumanController(player2).withControls(
+                        new Dyna.util.KeyboardInput(keyboard, {
+                            "w" : Player.UP,
+                            "s" : Player.DOWN,
+                            "a" : Player.LEFT,
+                            "d" : Player.RIGHT,
+                            "tab" : Player.ENTER
+                        }));
 
-        // run time
-        level.addPlayer(new Player("Player 1").withControls(
-                new Dyna.app.KeyboardInput(keyboard, {
-                    "up" : Player.UP,
-                    "down" : Player.DOWN,
-                    "left" : Player.LEFT,
-                    "right" : Player.RIGHT,
-                    "enter" : Player.ENTER
-                })));
-
-        level.addPlayer(new Player("Player 2").withControls(
-                new Dyna.app.KeyboardInput(keyboard, {
-                    "w" : Player.UP,
-                    "s" : Player.DOWN,
-                    "a" : Player.LEFT,
-                    "d" : Player.RIGHT,
-                    "tab" : Player.ENTER
-                })));
+        level.addPlayer(player1);
+        level.addPlayer(player2);
 
         game.start();
 

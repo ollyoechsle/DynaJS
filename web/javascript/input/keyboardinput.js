@@ -26,6 +26,6 @@
         event && this.fire(event);
     };
 
-    Dyna.app.KeyboardInput = KeyboardInput;
+    Dyna.util.KeyboardInput = KeyboardInput;
 
 })(window.Dyna);

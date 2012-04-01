@@ -21,7 +21,6 @@
     Player.prototype.bombsLaid = 0;
     Player.prototype.power = 1;
     Player.prototype.bombsAvailable = 0;
-    Player.prototype.keyboardInput = null;
 
     Player.prototype.initialise = function() {
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.possiblyGetBlownUp.bind(this));
@@ -31,16 +30,6 @@
         if (explosion.affects(this.x, this.y)) {
             this.die();
         }
-    };
-
-    Player.prototype.withControls = function(keyboardInput) {
-        this.keyboardInput = keyboardInput;
-        keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
-        keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
-        keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
-        keyboardInput.on(Player.RIGHT, this.move.bind(this, +1, 0, 'east'));
-        keyboardInput.on(Player.ENTER, this.layBomb.bind(this));
-        return this;
     };
 
     Player.prototype.powerUp = function() {
@@ -60,7 +49,6 @@
 
     Player.prototype.layBomb = function() {
 
-        log("Laying bomb");
         if (this.bombsLaid < this.bombsAvailable) {
             var bomb = new Dyna.model.Bomb(this.x, this.y, this.power);
             this.bombsLaid++;
@@ -71,7 +59,6 @@
     };
 
     Player.prototype.die = function() {
-        this.keyboardInput.unsubscribeAll();
         this.fire(Player.DIED);
     };
 

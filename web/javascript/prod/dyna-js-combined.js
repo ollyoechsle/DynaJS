@@ -348,7 +348,7 @@ window.Dyna = {
         event && this.fire(event);
     };
 
-    Dyna.app.KeyboardInput = KeyboardInput;
+    Dyna.util.KeyboardInput = KeyboardInput;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -696,7 +696,6 @@ window.Dyna = {
     Player.prototype.bombsLaid = 0;
     Player.prototype.power = 1;
     Player.prototype.bombsAvailable = 0;
-    Player.prototype.keyboardInput = null;
 
     Player.prototype.initialise = function() {
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.possiblyGetBlownUp.bind(this));
@@ -706,16 +705,6 @@ window.Dyna = {
         if (explosion.affects(this.x, this.y)) {
             this.die();
         }
-    };
-
-    Player.prototype.withControls = function(keyboardInput) {
-        this.keyboardInput = keyboardInput;
-        keyboardInput.on(Player.UP, this.move.bind(this, 0, -1, 'north'));
-        keyboardInput.on(Player.DOWN, this.move.bind(this, 0, +1, 'south'));
-        keyboardInput.on(Player.LEFT, this.move.bind(this, -1, 0, 'west'));
-        keyboardInput.on(Player.RIGHT, this.move.bind(this, +1, 0, 'east'));
-        keyboardInput.on(Player.ENTER, this.layBomb.bind(this));
-        return this;
     };
 
     Player.prototype.powerUp = function() {
@@ -735,7 +724,6 @@ window.Dyna = {
 
     Player.prototype.layBomb = function() {
 
-        log("Laying bomb");
         if (this.bombsLaid < this.bombsAvailable) {
             var bomb = new Dyna.model.Bomb(this.x, this.y, this.power);
             this.bombsLaid++;
@@ -746,7 +734,6 @@ window.Dyna = {
     };
 
     Player.prototype.die = function() {
-        this.keyboardInput.unsubscribeAll();
         this.fire(Player.DIED);
     };
 
@@ -1068,6 +1055,54 @@ window.Dyna = {
 
 })(window.Dyna);(function(Dyna) {
 
+    /**
+     * Constructor
+     * @param player The player to control
+     */
+    function HumanController(player) {
+        this.player = player;
+        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+    }
+
+    /**
+     * The player to control
+     * @type {Dyna.model.Player}
+     */
+    HumanController.prototype.player = null;
+
+    /**
+     * The input method.
+     * @type {Dyna.util.KeyboardInput}
+     */
+    HumanController.prototype.keyboardInput = null;
+
+    /**
+     * Sets up some controls to allow the player to be controlled by a human
+     * @param {Dyna.util.KeyboardInput} keyboardInput The input method                                                  
+     */
+    HumanController.prototype.withControls = function(keyboardInput) {
+        var player = this.player;
+        this.keyboardInput = keyboardInput;
+        keyboardInput.on(Dyna.model.Player.UP, player.move.bind(player, 0, -1, 'north'));
+        keyboardInput.on(Dyna.model.Player.DOWN, player.move.bind(player, 0, +1, 'south'));
+        keyboardInput.on(Dyna.model.Player.LEFT, player.move.bind(player, -1, 0, 'west'));
+        keyboardInput.on(Dyna.model.Player.RIGHT, player.move.bind(player, +1, 0, 'east'));
+        keyboardInput.on(Dyna.model.Player.ENTER, player.layBomb.bind(player));
+        return this;
+    };
+
+    /**
+     * Stops the input method from affecting the player
+     */
+    HumanController.prototype.stopControlling = function() {
+        this.keyboardInput.unsubscribeAll();
+        this.keyboardInput = null;
+    };
+
+    Dyna.app.HumanController = HumanController;
+
+})(window.Dyna);(function(Dyna) {
+
     function init() {
 
         log("Initialising DynaJS");
@@ -1098,26 +1133,28 @@ window.Dyna = {
 
         // controller
         var
-                game = new Dyna.app.Game(level, levelView);
+                game = new Dyna.app.Game(level, levelView),
+                player1 = new Player("Player 1"),
+                player2 = new Player("Player 2"),
+                humanController1 = new Dyna.app.HumanController(player1).withControls(
+                        new Dyna.util.KeyboardInput(keyboard, {
+                            "up" : Player.UP,
+                            "down" : Player.DOWN,
+                            "left" : Player.LEFT,
+                            "right" : Player.RIGHT,
+                            "enter" : Player.ENTER
+                        })),
+                humanController2 = new Dyna.app.HumanController(player2).withControls(
+                        new Dyna.util.KeyboardInput(keyboard, {
+                            "w" : Player.UP,
+                            "s" : Player.DOWN,
+                            "a" : Player.LEFT,
+                            "d" : Player.RIGHT,
+                            "tab" : Player.ENTER
+                        }));
 
-        // run time
-        level.addPlayer(new Player("Player 1").withControls(
-                new Dyna.app.KeyboardInput(keyboard, {
-                    "up" : Player.UP,
-                    "down" : Player.DOWN,
-                    "left" : Player.LEFT,
-                    "right" : Player.RIGHT,
-                    "enter" : Player.ENTER
-                })));
-
-        level.addPlayer(new Player("Player 2").withControls(
-                new Dyna.app.KeyboardInput(keyboard, {
-                    "w" : Player.UP,
-                    "s" : Player.DOWN,
-                    "a" : Player.LEFT,
-                    "d" : Player.RIGHT,
-                    "tab" : Player.ENTER
-                })));
+        level.addPlayer(player1);
+        level.addPlayer(player2);
 
         game.start();
 
