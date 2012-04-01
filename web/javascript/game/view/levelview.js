@@ -60,7 +60,6 @@
     };
 
     LevelView.prototype._createPlayerView = function(player) {
-        log("LevelView: Creating view for new player");
         this.playerViews.push(this.playerViewFactory(player))
     };
 

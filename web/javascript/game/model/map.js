@@ -88,7 +88,6 @@
     Map.prototype.steppedOnLevelUp = function(x, y) {
         var tile = this.tileAt(x, y);
         if (tile && tile == Map.POWERUP) {
-            log("Level up");
             this.data[x][y] = tile.destroy();
             return true;
         } else {

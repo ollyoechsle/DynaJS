@@ -51,11 +51,8 @@
         if (this.map.isFree(x, y)) {
             player.moveTo(x, y);
             if (this.map.steppedOnLevelUp(x, y)) {
-                log("Level up");
                 this.fire(Level.LEVEL_UP, player);
                 player.powerUp();
-            } else {
-                log("Didn't level up");
             }
         }
     };

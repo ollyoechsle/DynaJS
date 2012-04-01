@@ -4,7 +4,6 @@
      * Constructor
      */
     function MapView(jContainer, map) {
-        log("Creating mapview");
         this.jContainer = jQuery(jContainer);
         this.map = map;
         this.initialise();

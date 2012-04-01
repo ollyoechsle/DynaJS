@@ -28,7 +28,6 @@
         jQuery("<div class='avatar'></div>")
                 .appendTo(this.jPlayer);
 
-        log("PlayerView: Added player to " + this.jContainer[0]);
     };
 
     PlayerView.prototype.handlePlayerDied = function() {

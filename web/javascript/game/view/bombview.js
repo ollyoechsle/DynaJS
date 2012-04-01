@@ -4,7 +4,6 @@
      * Constructor
      */
     function BombView(jContainer, bomb) {
-        log("Creating bomb view");
         this.jContainer = jQuery(jContainer);
         this.bomb = bomb;
         this.initialise();

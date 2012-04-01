@@ -515,11 +515,8 @@ window.Dyna = {
         if (this.map.isFree(x, y)) {
             player.moveTo(x, y);
             if (this.map.steppedOnLevelUp(x, y)) {
-                log("Level up");
                 this.fire(Level.LEVEL_UP, player);
                 player.powerUp();
-            } else {
-                log("Didn't level up");
             }
         }
     };
@@ -628,7 +625,6 @@ window.Dyna = {
     Map.prototype.steppedOnLevelUp = function(x, y) {
         var tile = this.tileAt(x, y);
         if (tile && tile == Map.POWERUP) {
-            log("Level up");
             this.data[x][y] = tile.destroy();
             return true;
         } else {
@@ -770,7 +766,6 @@ window.Dyna = {
      * Constructor
      */
     function BombView(jContainer, bomb) {
-        log("Creating bomb view");
         this.jContainer = jQuery(jContainer);
         this.bomb = bomb;
         this.initialise();
@@ -894,7 +889,6 @@ window.Dyna = {
     };
 
     LevelView.prototype._createPlayerView = function(player) {
-        log("LevelView: Creating view for new player");
         this.playerViews.push(this.playerViewFactory(player))
     };
 
@@ -915,7 +909,6 @@ window.Dyna = {
      * Constructor
      */
     function MapView(jContainer, map) {
-        log("Creating mapview");
         this.jContainer = jQuery(jContainer);
         this.map = map;
         this.initialise();
@@ -996,7 +989,6 @@ window.Dyna = {
         jQuery("<div class='avatar'></div>")
                 .appendTo(this.jPlayer);
 
-        log("PlayerView: Added player to " + this.jContainer[0]);
     };
 
     PlayerView.prototype.handlePlayerDied = function() {
