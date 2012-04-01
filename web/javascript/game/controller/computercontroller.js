@@ -78,20 +78,50 @@
 
     };
 
+    ComputerController.prototype.getScoreForDestination = function(x, y) {
+
+        var score = 0;
+
+        // get points for blowing up walls
+        score += this.map.getSurroundingBlockCount(x, y);
+
+        // points for power ups
+        if (this.map.isPowerUp(x, y)) {
+            score += 10;
+        }
+
+        // less points for being the current position
+        if (x == this.player.x && y == this.player.y) {
+            score-=2;
+        }
+
+        // todo: negative points for being in danger
+
+        return score;
+
+    };
+
     /**
      * Chooses a destination to travel to from a list of potential destinations
      * @param {Object[]} potentialDestinations The list of destinations
      */
     ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
+
+        var maxScore = 0, destination, chosenDestination, score;
+
         for (var i = 0; i < potentialDestinations.length; i++) {
 
-            var destination = potentialDestinations[i];
+            destination = potentialDestinations[i];
+            score = this.getScoreForDestination(destination.x, destination.y);
 
-            if (Math.random() < (1 / potentialDestinations.length)) {
-                return destination;
+            if (score > maxScore) {
+                maxScore = score;
+                chosenDestination = destination;
             }
 
         }
+
+        return chosenDestination;
     };
 
     /**
