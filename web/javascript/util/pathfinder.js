@@ -49,18 +49,18 @@
      */
     PathFinder.prototype.getAvailableDestinations = function() {
 
-        var tiles = "", map = this.map;
+        var availablePositions = "", map = this.map;
 
         function explore(cx, cy) {
 
             var key, direction, nx, ny;
 
-            tiles = tiles + encodePath(cx, cy) + ",";
+            availablePositions = availablePositions + encodePath(cx, cy) + ",";
 
             for (key in directions) {
-                direction = directions[key], nx = cx + direction.x, ny = cy + direction.y;
+                direction = directions[key],nx = cx + direction.x,ny = cy + direction.y;
                 if (map.isFree(nx, ny)) {
-                    if (tiles.lastIndexOf(encodePath(nx, ny)) == -1) {
+                    if (availablePositions.lastIndexOf(encodePath(nx, ny)) == -1) {
                         explore(nx, ny);
                     }
                 }
@@ -70,11 +70,7 @@
 
         explore(this.startX, this.startY);
 
-        var availablePositions = [], encodedPaths = tiles.split(","), i, l;
-        for (i = 0, l = encodedPaths.length - 1; i < l; i++) {
-           availablePositions.push(decodePath(encodedPaths[i]))
-        }
-        return availablePositions;
+        return convert(availablePositions)
 
     };
 
@@ -115,7 +111,7 @@
         if (!this.completePathsFound.length) {
             return null;
         } else {
-            return this.completePathsFound[0];
+            return convert(this.completePathsFound[0]);
         }
 
     };
@@ -168,6 +164,14 @@
         "west": {x: +1, y: 0},
         "north": {x: 0, y: -1},
         "south": {x: 0, y: +1}
+    };
+
+    var convert = function(path) {
+        var positions = [], encodedPaths = path.split(","), i, l;
+        for (i = 0,l = encodedPaths.length - 1; i < l; i++) {
+            positions.push(decodePath(encodedPaths[i]))
+        }
+        return positions;
     };
 
     Dyna.util.PathFinder = PathFinder;

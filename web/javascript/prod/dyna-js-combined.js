@@ -186,18 +186,18 @@ window.Dyna = {
      */
     PathFinder.prototype.getAvailableDestinations = function() {
 
-        var tiles = "", map = this.map;
+        var availablePositions = "", map = this.map;
 
         function explore(cx, cy) {
 
             var key, direction, nx, ny;
 
-            tiles = tiles + encodePath(cx, cy) + ",";
+            availablePositions = availablePositions + encodePath(cx, cy) + ",";
 
             for (key in directions) {
-                direction = directions[key], nx = cx + direction.x, ny = cy + direction.y;
+                direction = directions[key],nx = cx + direction.x,ny = cy + direction.y;
                 if (map.isFree(nx, ny)) {
-                    if (tiles.lastIndexOf(encodePath(nx, ny)) == -1) {
+                    if (availablePositions.lastIndexOf(encodePath(nx, ny)) == -1) {
                         explore(nx, ny);
                     }
                 }
@@ -207,11 +207,7 @@ window.Dyna = {
 
         explore(this.startX, this.startY);
 
-        var availablePositions = [], encodedPaths = tiles.split(","), i, l;
-        for (i = 0, l = encodedPaths.length - 1; i < l; i++) {
-           availablePositions.push(decodePath(encodedPaths[i]))
-        }
-        return availablePositions;
+        return convert(availablePositions)
 
     };
 
@@ -252,7 +248,7 @@ window.Dyna = {
         if (!this.completePathsFound.length) {
             return null;
         } else {
-            return this.completePathsFound[0];
+            return convert(this.completePathsFound[0]);
         }
 
     };
@@ -305,6 +301,14 @@ window.Dyna = {
         "west": {x: +1, y: 0},
         "north": {x: 0, y: -1},
         "south": {x: 0, y: +1}
+    };
+
+    var convert = function(path) {
+        var positions = [], encodedPaths = path.split(","), i, l;
+        for (i = 0,l = encodedPaths.length - 1; i < l; i++) {
+            positions.push(decodePath(encodedPaths[i]))
+        }
+        return positions;
     };
 
     Dyna.util.PathFinder = PathFinder;
@@ -1084,6 +1088,13 @@ window.Dyna = {
     ComputerController.prototype.map = null;
 
     /**
+     * The current path that the computer is walking along
+     * @private
+     * @type {Object[]}
+     */
+    ComputerController.prototype.currentPath = null;
+
+    /**
      * Ensures that the controller will stop working if the player dies
      * @private
      */
@@ -1096,25 +1107,54 @@ window.Dyna = {
      * Consider what to do with the player next
      */
     ComputerController.prototype.think = function() {
-        log("Thinking..");
-        var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y);
 
-        var potentialDestinations = pathFinder.getAvailableDestinations();
+        if (!this.currentPath || !this.currentPath.length) {
+            this.chooseSomewhereToGo();
+        }
 
-        // choose the most useful destination
+        this.takeNextStep();
+
+    };
+
+    /**
+     * Moves the player one step towards the destination
+     */
+    ComputerController.prototype.takeNextStep = function() {
+        if (this.currentPath && this.currentPath.length) {
+            var nextStep = this.currentPath.shift();
+            this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+        }
+    };
+
+    /**
+     * Finds some place for the player to go to
+     */
+    ComputerController.prototype.chooseSomewhereToGo = function() {
+
+        var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
+                potentialDestinations = pathFinder.getAvailableDestinations(),
+                chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
+
+        if (chosenDestination) {
+            this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
+        }
+
+    };
+
+    /**
+     * Chooses a destination to travel to from a list of potential destinations
+     * @param {Object[]} potentialDestinations The list of destinations
+     */
+    ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
         for (var i = 0; i < potentialDestinations.length; i++) {
 
             var destination = potentialDestinations[i];
 
             if (Math.random() < (1 / potentialDestinations.length)) {
-                log("Computer is moving to ", destination);
-                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, destination.x, destination.y);
-                break;
+                return destination;
             }
 
         }
-
-        log(potentialDestinations);
     };
 
     /**
@@ -1123,7 +1163,7 @@ window.Dyna = {
     ComputerController.prototype.stopControlling = function() {
     };
 
-    ComputerController.SPEED = 2000;
+    ComputerController.SPEED = 1000;
 
     Dyna.app.ComputerController = ComputerController;
 
