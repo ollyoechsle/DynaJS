@@ -3,5 +3,6 @@ window.Dyna = {
     util: {},
     ui: {},
     model: {},
+    service: {},
     events: {}
 };

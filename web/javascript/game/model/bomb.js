@@ -11,6 +11,7 @@
         this.y = y;
         this.exploded = false;
         this.power = power;
+        this.id = x + "." + y;
 
         this.startTicking();
 
@@ -18,6 +19,7 @@
 
     Object.extend(Bomb, Dyna.events.CustomEvent);
 
+    Bomb.prototype.id = null;
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
@@ -40,7 +42,7 @@
     Bomb.prototype.explode = function() {
         this.timer = null;
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
+        this.fire(Bomb.EXPLODE, this.x, this.y, this.power, this);
     };
 
     /** @event */

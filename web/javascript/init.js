@@ -18,7 +18,8 @@
                     blocks: 0.75,
                     powerups: 0.10
                 }),
-                level = new Dyna.model.Level("Level 1", map);
+                level = new Dyna.model.Level("Level 1", map),
+                fbi = new Dyna.service.FBI(level);
 
         // view
         var

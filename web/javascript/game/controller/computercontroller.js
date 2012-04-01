@@ -37,7 +37,7 @@
      */
     ComputerController.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
-        window.setInterval(this.think.bind(this), ComputerController.SPEED);
+        this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
     };
 
     /**
@@ -45,7 +45,7 @@
      */
     ComputerController.prototype.think = function() {
 
-        if (!this.currentPath || !this.currentPath.length) {
+        if (!this.currentPath) {
             this.chooseSomewhereToGo();
         }
 
@@ -57,9 +57,14 @@
      * Moves the player one step towards the destination
      */
     ComputerController.prototype.takeNextStep = function() {
-        if (this.currentPath && this.currentPath.length) {
-            var nextStep = this.currentPath.shift();
-            this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+        if (this.currentPath) {
+            if (this.currentPath.length) {
+                var nextStep = this.currentPath.shift();
+                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+            } else {
+                this.player.layBomb();
+                this.currentPath = null;
+            }
         }
     };
 
@@ -92,10 +97,12 @@
 
         // less points for being the current position
         if (x == this.player.x && y == this.player.y) {
-            score-=2;
+            score -= 2;
         }
 
-        // todo: negative points for being in danger
+        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
+            score -= 20;
+        }
 
         return score;
 
@@ -128,6 +135,7 @@
      * Stops the computer controller from affecting the player
      */
     ComputerController.prototype.stopControlling = function() {
+        window.clearInterval(this.interval);
     };
 
     ComputerController.SPEED = 1000;

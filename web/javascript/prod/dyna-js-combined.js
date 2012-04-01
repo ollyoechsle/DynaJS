@@ -3,6 +3,7 @@ window.Dyna = {
     util: {},
     ui: {},
     model: {},
+    service: {},
     events: {}
 };if (!Function.prototype.bind) {
     Function.prototype.bind = function (oThis) {
@@ -410,6 +411,7 @@ window.Dyna = {
         this.y = y;
         this.exploded = false;
         this.power = power;
+        this.id = x + "." + y;
 
         this.startTicking();
 
@@ -417,6 +419,7 @@ window.Dyna = {
 
     Object.extend(Bomb, Dyna.events.CustomEvent);
 
+    Bomb.prototype.id = null;
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
@@ -439,7 +442,7 @@ window.Dyna = {
     Bomb.prototype.explode = function() {
         this.timer = null;
         this.exploded = true;
-        this.fire(Bomb.EXPLODE, this.x, this.y, this.power);
+        this.fire(Bomb.EXPLODE, this.x, this.y, this.power, this);
     };
 
     /** @event */
@@ -1115,7 +1118,7 @@ window.Dyna = {
      */
     ComputerController.prototype.initialise = function() {
         this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
-        window.setInterval(this.think.bind(this), ComputerController.SPEED);
+        this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
     };
 
     /**
@@ -1123,7 +1126,7 @@ window.Dyna = {
      */
     ComputerController.prototype.think = function() {
 
-        if (!this.currentPath || !this.currentPath.length) {
+        if (!this.currentPath) {
             this.chooseSomewhereToGo();
         }
 
@@ -1135,9 +1138,14 @@ window.Dyna = {
      * Moves the player one step towards the destination
      */
     ComputerController.prototype.takeNextStep = function() {
-        if (this.currentPath && this.currentPath.length) {
-            var nextStep = this.currentPath.shift();
-            this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+        if (this.currentPath) {
+            if (this.currentPath.length) {
+                var nextStep = this.currentPath.shift();
+                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+            } else {
+                this.player.layBomb();
+                this.currentPath = null;
+            }
         }
     };
 
@@ -1152,7 +1160,6 @@ window.Dyna = {
 
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
-            log("Current path", this.currentPath);
         }
 
     };
@@ -1171,10 +1178,12 @@ window.Dyna = {
 
         // less points for being the current position
         if (x == this.player.x && y == this.player.y) {
-            score-=2;
+            score -= 2;
         }
 
-        // todo: negative points for being in danger
+        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
+            score -= 20;
+        }
 
         return score;
 
@@ -1200,7 +1209,6 @@ window.Dyna = {
 
         }
 
-        log("Chosen destination", chosenDestination, score);
         return chosenDestination;
     };
 
@@ -1208,11 +1216,58 @@ window.Dyna = {
      * Stops the computer controller from affecting the player
      */
     ComputerController.prototype.stopControlling = function() {
+        window.clearInterval(this.interval);
     };
 
     ComputerController.SPEED = 1000;
 
     Dyna.app.ComputerController = ComputerController;
+
+})(window.Dyna);(function(Dyna) {
+
+    function FBI(level) {
+        FBI.instance = this;
+        this.intelligence = {};
+        this.level = level;
+        this.level.on(Dyna.model.Level.BOMB_ADDED, this.handleBombThreat.bind(this));
+    }
+
+    FBI.prototype.level = null;
+
+    /**
+     * A list of all the bombs currently on the map
+     * @type {Object}
+     */
+    FBI.prototype.intelligence = null;
+
+    FBI.prototype.handleBombThreat = function(bomb) {
+        log("FBI has had a report of a bomb threat at " + bomb.id);
+        this.intelligence[bomb.id] = bomb;
+        bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExplosion.bind(this));
+    };
+
+    FBI.prototype.handleBombExplosion = function(x, y, power, bomb) {
+        log("FBI standing down at", bomb.id);
+        delete this.intelligence[bomb.id];
+    };
+
+    FBI.prototype.estimateDangerAt = function(x, y) {
+        for (var bombId in this.intelligence) {
+            var bomb = this.intelligence[bombId];
+            if (bomb.x == x && bomb.y == y) {
+                return 1;
+            }
+        }
+        return 0;
+    };
+
+    /**
+     * Static instance that can be got at any time
+     * @type {Dyna.service.FBI}
+     */
+    FBI.instance = null;
+
+    Dyna.service.FBI = FBI;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -1313,7 +1368,8 @@ window.Dyna = {
                     blocks: 0.75,
                     powerups: 0.10
                 }),
-                level = new Dyna.model.Level("Level 1", map);
+                level = new Dyna.model.Level("Level 1", map),
+                fbi = new Dyna.service.FBI(level);
 
         // view
         var
