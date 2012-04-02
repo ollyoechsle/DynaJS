@@ -90,16 +90,6 @@
         return tile == Map.POWERUP;
     };
 
-    Map.prototype.getSurroundingBlockCount = function(x, y) {
-        // todo: doesn't take into account the power of the bomb
-        var count = 0;
-        if (this.tileAt(x-1, y) == Map.BLOCK) count++;
-        if (this.tileAt(x+1, y) == Map.BLOCK) count++;
-        if (this.tileAt(x, y-1) == Map.BLOCK) count++;
-        if (this.tileAt(x, y+1) == Map.BLOCK) count++;
-        return count;
-    };
-
     Map.prototype.steppedOnLevelUp = function(x, y) {
         var tile = this.tileAt(x, y);
         if (tile && tile == Map.POWERUP) {
@@ -109,7 +99,6 @@
             return false;
         }
     };
-
 
     Map.EARTH = {
         solid: false,

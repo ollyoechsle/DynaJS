@@ -452,65 +452,69 @@ window.Dyna = {
 
 })(window.Dyna);(function(Dyna) {
 
-    function Explosion() {
-        log("Creating explosion");
-        this.tilesAffected = [];
-    }
+   function Explosion() {
+      this.tilesAffected = [];
+      this.blocksAffected = 0;
+   }
 
-    Explosion.prototype.tilesAffected = null;
+   Explosion.prototype.tilesAffected = null;
+   Explosion.prototype.blocksAffected = 0;
 
-    Explosion.prototype.addAffectedTile = function(x, y) {
-        this.tilesAffected.push({
-            x: x,
-            y: y
-        });
-    };
+   Explosion.prototype.addAffectedTile = function(x, y) {
+      this.tilesAffected.push({
+         x: x,
+         y: y
+      });
+   };
 
-    Explosion.prototype.affects = function(x, y) {
-        for (var i = 0; i < this.tilesAffected.length; i++) {
-            var tile = this.tilesAffected[i];
-            if (tile.x == x && tile.y == y) {
-                return true;
+   Explosion.prototype.affects = function(x, y) {
+      for (var i = 0; i < this.tilesAffected.length; i++) {
+         var tile = this.tilesAffected[i];
+         if (tile.x == x && tile.y == y) {
+            return true;
+         }
+      }
+      return false;
+   };
+
+   Explosion.create = function(map, x, y, power) {
+      var explosion = new Explosion(), direction;
+
+      for (var key in directions) {
+         direction = directions[key];
+
+         for (var i = 0; i <= power; i++) {
+            var mx = x + (direction.x * i),
+               my = y + (direction.y * i),
+               tile = map.tileAt(mx, my);
+
+            if (tile && tile != Dyna.model.Map.WALL) {
+               explosion.addAffectedTile(mx, my);
+               if (tile == Dyna.model.Map.BLOCK) {
+                  explosion.blocksAffected++;
+               }
+               if (tile.solid) {
+                  break;
+               }
+            } else {
+               break;
             }
-        }
-        return false;
-    };
+         }
 
-    Explosion.create = function(map, x, y, power) {
-        log("Creating explosion", x, y, power);
-        var explosion = new Explosion();
+      }
 
-        for (var key in directions) {
-            var direction = directions[key];
+      return explosion;
 
-            for (var i = 0; i <= power; i++) {
-                var mx = x + (direction.x * i);
-                var my = y + (direction.y * i);
-                var tile = map.tileAt(mx, my);
-                if (tile && tile != Dyna.model.Map.WALL) {
-                    explosion.addAffectedTile(mx, my);
-                    if (tile.solid) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
+   };
 
-        }
+   var directions = {
+      "east": {x: -1, y: 0},
+      "west": {x: +1, y: 0},
+      "north": {x: 0, y: -1},
+      "south": {x: 0, y: +1}
+   };
 
-        return explosion;
-
-    };
-
-    var directions = {
-        "east": {x: -1, y: 0},
-        "west": {x: +1, y: 0},
-        "north": {x: 0, y: -1},
-        "south": {x: 0, y: +1}
-    };
-
-    Dyna.model.Explosion = Explosion;
+   Dyna.model.Explosion = Explosion;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -677,16 +681,6 @@ window.Dyna = {
         return tile == Map.POWERUP;
     };
 
-    Map.prototype.getSurroundingBlockCount = function(x, y) {
-        // todo: doesn't take into account the power of the bomb
-        var count = 0;
-        if (this.tileAt(x-1, y) == Map.BLOCK) count++;
-        if (this.tileAt(x+1, y) == Map.BLOCK) count++;
-        if (this.tileAt(x, y-1) == Map.BLOCK) count++;
-        if (this.tileAt(x, y+1) == Map.BLOCK) count++;
-        return count;
-    };
-
     Map.prototype.steppedOnLevelUp = function(x, y) {
         var tile = this.tileAt(x, y);
         if (tile && tile == Map.POWERUP) {
@@ -696,7 +690,6 @@ window.Dyna = {
             return false;
         }
     };
-
 
     Map.EARTH = {
         solid: false,
@@ -855,42 +848,43 @@ window.Dyna = {
 
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
-    /**
-     * Constructor
-     */
-    function ExplosionView(jContainer, explosion, map) {
-        this.jContainer = jQuery(jContainer);
-        this.explosion = explosion;
-        this.map = map;
-        this.initialise();
-    }
+   function ExplosionView(jContainer, explosion, map) {
+      this.jContainer = jQuery(jContainer);
+      this.explosion = explosion;
+      this.map = map;
+      this.initialise();
+   }
 
-    ExplosionView.prototype.map = null;
-    ExplosionView.prototype.explosion = null;
-    ExplosionView.prototype.jContainer = null;
-    ExplosionView.prototype.jExplosion = null;
+   ExplosionView.prototype.map = null;
+   ExplosionView.prototype.explosion = null;
+   ExplosionView.prototype.jContainer = null;
+   ExplosionView.prototype.jExplosion = null;
 
-    ExplosionView.prototype.initialise = function() {
-        var fragment = document.createDocumentFragment();
-        for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
-            var tile = this.explosion.tilesAffected[i];
-            if (this.map.inBounds(tile.x, tile.y)) {
-                fragment.appendChild(jQuery("<div class='fireBall'></div>")
-                        .css("left", tile.x * Dyna.ui.LevelView.tileSize)
-                        .css("top", tile.y * Dyna.ui.LevelView.tileSize)
-                        [0]);
-            }
-        }
-        this.jContainer.append(fragment);
-        this.boom();
-    };
+   ExplosionView.prototype.initialise = function() {
+      var fragment = document.createDocumentFragment();
+      for (var i = 0; i < this.explosion.tilesAffected.length; i++) {
+         var tile = this.explosion.tilesAffected[i];
+         if (this.map.inBounds(tile.x, tile.y)) {
+            fragment.appendChild(ExplosionView.createFireBall(tile.x, tile.y));
+         }
+      }
+      this.jContainer.append(fragment);
+      this.boom();
+   };
 
-    ExplosionView.prototype.boom = function() {
-        var snd = new Audio("snd/explosion.wav");
-        snd.play();
-    };
+   ExplosionView.createFireBall = function(x, y) {
+      return jQuery("<div class='fireBall'></div>")
+         .css("left", x * Dyna.ui.LevelView.tileSize)
+         .css("top", y * Dyna.ui.LevelView.tileSize)
+         [0];
+   };
 
-    Dyna.ui.ExplosionView = ExplosionView;
+   ExplosionView.prototype.boom = function() {
+      var snd = new Audio("snd/explosion.wav");
+      snd.play();
+   };
+
+   Dyna.ui.ExplosionView = ExplosionView;
 
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
@@ -1081,147 +1075,148 @@ window.Dyna = {
 
 })(window.Dyna, jQuery);(function(Dyna) {
 
-    /**
-     * @constructor
-     * @param {Dyna.model.Player} player The player to control
-     */
-    function ComputerController(player, map) {
-        this.player = player;
-        this.map = map;
-        this.initialise();
-    }
+   /**
+    * @constructor
+    * @param {Dyna.model.Player} player The player to control
+    */
+   function ComputerController(player, map) {
+      this.player = player;
+      this.map = map;
+      this.initialise();
+   }
 
-    /**
-     * The player to control
-     * @private
-     * @type {Dyna.model.Player}
-     */
-    ComputerController.prototype.player = null;
+   /**
+    * The player to control
+    * @private
+    * @type {Dyna.model.Player}
+    */
+   ComputerController.prototype.player = null;
 
-    /**
-     * Reference to the map, so the controller can explore
-     * @private
-     * @type {Dyna.model.Map}
-     */
-    ComputerController.prototype.map = null;
+   /**
+    * Reference to the map, so the controller can explore
+    * @private
+    * @type {Dyna.model.Map}
+    */
+   ComputerController.prototype.map = null;
 
-    /**
-     * The current path that the computer is walking along
-     * @private
-     * @type {Object[]}
-     */
-    ComputerController.prototype.currentPath = null;
+   /**
+    * The current path that the computer is walking along
+    * @private
+    * @type {Object[]}
+    */
+   ComputerController.prototype.currentPath = null;
 
-    /**
-     * Ensures that the controller will stop working if the player dies
-     * @private
-     */
-    ComputerController.prototype.initialise = function() {
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
-        this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
-    };
+   /**
+    * Ensures that the controller will stop working if the player dies
+    * @private
+    */
+   ComputerController.prototype.initialise = function() {
+      this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+      this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
+   };
 
-    /**
-     * Consider what to do with the player next
-     */
-    ComputerController.prototype.think = function() {
+   /**
+    * Consider what to do with the player next
+    */
+   ComputerController.prototype.think = function() {
 
-        if (!this.currentPath) {
-            this.chooseSomewhereToGo();
-        }
+      if (!this.currentPath) {
+         this.chooseSomewhereToGo();
+      }
 
-        this.takeNextStep();
+      this.takeNextStep();
 
-    };
+   };
 
-    /**
-     * Moves the player one step towards the destination
-     */
-    ComputerController.prototype.takeNextStep = function() {
-        if (this.currentPath) {
-            if (this.currentPath.length) {
-                var nextStep = this.currentPath.shift();
-                this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
-            } else {
-                this.player.layBomb();
-                this.currentPath = null;
-            }
-        }
-    };
+   /**
+    * Moves the player one step towards the destination
+    */
+   ComputerController.prototype.takeNextStep = function() {
+      if (this.currentPath) {
+         if (this.currentPath.length) {
+            var nextStep = this.currentPath.shift();
+            this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
+         } else {
+            this.player.layBomb();
+            this.currentPath = null;
+         }
+      }
+   };
 
-    /**
-     * Finds some place for the player to go to
-     */
-    ComputerController.prototype.chooseSomewhereToGo = function() {
+   /**
+    * Finds some place for the player to go to
+    */
+   ComputerController.prototype.chooseSomewhereToGo = function() {
 
-        var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
-                potentialDestinations = pathFinder.getAvailableDestinations(),
-                chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
+      var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
+         potentialDestinations = pathFinder.getAvailableDestinations(),
+         chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
 
-        if (chosenDestination) {
-            this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
-        }
+      if (chosenDestination) {
+         this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
+      }
 
-    };
+   };
 
-    ComputerController.prototype.getScoreForDestination = function(x, y) {
+   ComputerController.prototype.getScoreForDestination = function(x, y) {
 
-        var score = 0;
+      var score = 0;
 
-        // get points for blowing up walls
-        score += this.map.getSurroundingBlockCount(x, y);
+      // get points for blowing up walls
+      var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
+      score += possibleExplosion.blocksAffected;
 
-        // points for power ups
-        if (this.map.isPowerUp(x, y)) {
-            score += 10;
-        }
+      // points for power ups
+      if (this.map.isPowerUp(x, y)) {
+         score += 10;
+      }
 
-        // less points for being the current position
-        if (x == this.player.x && y == this.player.y) {
-            score -= 2;
-        }
+      // less points for being the current position
+      if (x == this.player.x && y == this.player.y) {
+         score -= 2;
+      }
 
-        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
-            score -= 20;
-        }
+      if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
+         score -= 20;
+      }
 
-        return score;
+      return score;
 
-    };
+   };
 
-    /**
-     * Chooses a destination to travel to from a list of potential destinations
-     * @param {Object[]} potentialDestinations The list of destinations
-     */
-    ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
+   /**
+    * Chooses a destination to travel to from a list of potential destinations
+    * @param {Object[]} potentialDestinations The list of destinations
+    */
+   ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
 
-        var maxScore = 0, destination, chosenDestination, score;
+      var maxScore = 0, destination, chosenDestination, score;
 
-        for (var i = 0; i < potentialDestinations.length; i++) {
+      for (var i = 0; i < potentialDestinations.length; i++) {
 
-            destination = potentialDestinations[i];
-            score = this.getScoreForDestination(destination.x, destination.y);
+         destination = potentialDestinations[i];
+         score = this.getScoreForDestination(destination.x, destination.y);
 
-            if (score > maxScore) {
-                maxScore = score;
-                chosenDestination = destination;
-            }
+         if (score > maxScore) {
+            maxScore = score;
+            chosenDestination = destination;
+         }
 
-        }
+      }
 
-        return chosenDestination;
-    };
+      return chosenDestination;
+   };
 
-    /**
-     * Stops the computer controller from affecting the player
-     */
-    ComputerController.prototype.stopControlling = function() {
-        window.clearInterval(this.interval);
-    };
+   /**
+    * Stops the computer controller from affecting the player
+    */
+   ComputerController.prototype.stopControlling = function() {
+      window.clearInterval(this.interval);
+   };
 
-    ComputerController.SPEED = 1000;
+   ComputerController.SPEED = 500;
 
-    Dyna.app.ComputerController = ComputerController;
+   Dyna.app.ComputerController = ComputerController;
 
 })(window.Dyna);(function(Dyna) {
 
