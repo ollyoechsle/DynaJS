@@ -4,5 +4,6 @@
            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 		  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
            version="2.5">
-
+   <display-name>Dyna JS</display-name>
+   <description>A bomberman variant written in JavaScript and HTML5 technologies</description>
 </web-app>
