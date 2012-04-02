@@ -1137,10 +1137,16 @@ window.Dyna = {
             var nextStep = this.currentPath.shift();
             this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
          } else {
-            this.player.layBomb();
+            if (this.layingBombWillNotHarmMe()) {
+               this.player.layBomb();
+            }
             this.currentPath = null;
          }
       }
+   };
+
+   ComputerController.prototype.layingBombWillNotHarmMe = function() {
+      return this.player.bombsLaid == 0;
    };
 
    /**

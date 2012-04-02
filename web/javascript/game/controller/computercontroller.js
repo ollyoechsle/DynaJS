@@ -62,10 +62,22 @@
             var nextStep = this.currentPath.shift();
             this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
          } else {
-            this.player.layBomb();
+            if (this.layingBombWillNotHarmMe()) {
+               this.player.layBomb();
+            }
             this.currentPath = null;
          }
       }
+   };
+
+   /**
+    * Determines whether laying another bomb will cause more harm than good.
+    * For the sake of simplicity, at the moment this returns false if the player
+    * has already laid one bomb. Otherwise the player tends to make silly decisions
+    * resulting in lethal chain reactions :s
+    */
+   ComputerController.prototype.layingBombWillNotHarmMe = function() {
+      return this.player.bombsLaid == 0;
    };
 
    /**
