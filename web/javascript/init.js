@@ -34,7 +34,7 @@
                 game = new Dyna.app.Game(level, levelView),
                 player1 = new Player("Computer 1"),
                 player2 = new Player("Player 2"),
-                controller1 = new Dyna.app.ComputerController(player1, map),
+                controller1 = new Dyna.app.ComputerController(player1, level, map),
                 controller2 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "w" : Player.UP,

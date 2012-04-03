@@ -400,19 +400,22 @@ window.Dyna = {
 
 })(window.Dyna);(function(Dyna) {
 
+    var id = 0;
+
     /**
      * Constructor
      */
     function Bomb(x, y, power) {
 
         this.superclass.constructor.call(this);
-        log("Creating bomb");
+
+        this.id = ++id;
         this.x = x;
         this.y = y;
         this.exploded = false;
         this.power = power;
-        this.id = x + "." + y;
 
+        log("Creating bomb", this.id);
         this.startTicking();
 
     }
@@ -443,6 +446,10 @@ window.Dyna = {
         this.timer = null;
         this.exploded = true;
         this.fire(Bomb.EXPLODE, this.x, this.y, this.power, this);
+    };
+
+    Bomb.prototype.at = function(x, y) {
+        return this.x == x && this.y == y;
     };
 
     /** @event */
@@ -546,7 +553,7 @@ window.Dyna = {
             log("No room for this player on the map");
         }
     };
-
+    
     Level.prototype.handleBombAdded = function(bomb) {
         this.fire(Level.BOMB_ADDED, bomb);
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExploded.bind(this));
@@ -594,12 +601,14 @@ window.Dyna = {
     function Map(width, height, settings) {
         this.width = width;
         this.height = height;
+        this.maxDistance = width + height;
         this.playerPositions = [];
         this._createMap(settings);
     }
 
     Map.prototype.width = null;
     Map.prototype.height = null;
+    Map.prototype.maxDistance = null;
     Map.prototype.data = null;
     Map.prototype.playerPositions = null;
 
@@ -670,6 +679,7 @@ window.Dyna = {
             return null;
         }
     };
+
 
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
@@ -811,6 +821,15 @@ window.Dyna = {
 
     Player.prototype._handleMyBombExploded = function() {
         this.bombsLaid--;
+    };
+
+    /**
+     * Returns the rough distance to a point
+     * @param {Number} x
+     * @param {Number} y
+     */
+    Player.prototype.distanceTo = function(x, y) {
+        return Math.abs(this.x - x) + Math.abs(this.y - y);
     };
 
     Player.UP = "up";
@@ -1095,7 +1114,6 @@ window.Dyna = {
  * Things remaining for the computer controller
  * - Acting in a fuzzy, rather than strictly deterministic manner
  * - Being able to change course to avoid danger
- * - Turning to face the direction of travel
  * - Laying bombs on the way to a destination if useful
  * - Favouring paths that turn corners
  */
@@ -1104,9 +1122,12 @@ window.Dyna = {
     /**
      * @constructor
      * @param {Dyna.model.Player} player The player to control
+     * @param {Dyna.model.Level} level Provides access to the positions of other players
+     * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      */
-    function ComputerController(player, map) {
+    function ComputerController(player, level, map) {
         this.player = player;
+        this.level = level;
         this.map = map;
         this.initialise();
     }
@@ -1160,10 +1181,16 @@ window.Dyna = {
     ComputerController.prototype.takeNextStep = function() {
         if (this.currentPath) {
             if (this.currentPath.length) {
-                var nextStep = this.currentPath.shift();
-                this.player.move(nextStep.x, nextStep.y);
+                var nextStep = this.currentPath[0], fbi = Dyna.service.FBI.instance;
+                // if the next square is safe, or if the current space is in danger, move
+                if (!fbi.estimateDangerAt(nextStep.x, nextStep.y) || fbi.estimateDangerAt(this.player.x, this.player.y)) {
+                    this.player.move(nextStep.x, nextStep.y);
+                    this.currentPath.shift();
+                } else {
+                    // freeze!
+                }
             } else {
-                if (this.layingBombWillNotHarmMe()) {
+                if (this.layingBombHereIsAGoodIdea(this.player.x, this.player.y)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;
@@ -1177,8 +1204,17 @@ window.Dyna = {
      * has already laid one bomb. Otherwise the player tends to make silly decisions
      * resulting in lethal chain reactions :s
      */
-    ComputerController.prototype.layingBombWillNotHarmMe = function() {
-        return this.player.bombsLaid == 0;
+    ComputerController.prototype.layingBombHereIsAGoodIdea = function(x, y) {
+
+        // don't lay more than one bomb at once
+        if (this.player.bombsLaid > 0) {
+            return false;
+        }
+
+        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
+        return possibleExplosion.blocksAffected > 0;
+        // todo: include check to see if enemies might killed
+
     };
 
     /**
@@ -1209,11 +1245,26 @@ window.Dyna = {
             score += 10;
         }
 
-        // less points for being the current position
+        // points for being closer to other players
+        var minDistance = this.map.maxDistance;
+        for (var i = 0; i < this.level.players.length; i++) {
+            var player = this.level.players[i];
+            if (player !== this.player) {
+                var distance = player.distanceTo(x, y);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                }
+            }
+        }
+        var percentDistance = minDistance / this.map.maxDistance;
+        score += (1 - percentDistance);
+
+        // fewer points for being the current position
         if (x == this.player.x && y == this.player.y) {
             score -= 2;
         }
 
+        // fewer points for the square being in imminent danger
         if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
             score -= 20;
         }
@@ -1268,14 +1319,17 @@ window.Dyna = {
     FBI.prototype.level = null;
 
     /**
-     * A list of all the bombs currently on the map
+     * A list of all the bombs currently on the map with their projected explosions
      * @type {Object}
      */
     FBI.prototype.intelligence = null;
 
     FBI.prototype.handleBombThreat = function(bomb) {
         log("FBI has had a report of a bomb threat at " + bomb.id);
-        this.intelligence[bomb.id] = bomb;
+        this.intelligence[bomb.id] = {
+            bomb: bomb,
+            explosion: Dyna.model.Explosion.create(this.level.map, bomb.x, bomb.y, bomb.power)
+        };
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExplosion.bind(this));
     };
 
@@ -1284,10 +1338,16 @@ window.Dyna = {
         delete this.intelligence[bomb.id];
     };
 
+    /**
+     * Returns whether the given position is in imminent danger of being blown up by a bomb.
+     * @param {Number} x The X coordinate
+     * @param {Number} y The Y coordinate
+     */
     FBI.prototype.estimateDangerAt = function(x, y) {
-        for (var bombId in this.intelligence) {
-            var bomb = this.intelligence[bombId];
-            if (bomb.x == x && bomb.y == y) {
+        var bombId, intelligence;
+        for (bombId in this.intelligence) {
+            intelligence = this.intelligence[bombId];
+            if (intelligence.bomb.at(x, y) || intelligence.explosion.affects(x, y)) {
                 return 1;
             }
         }
@@ -1371,6 +1431,11 @@ window.Dyna = {
         return this;
     };
 
+    /**
+     * Alerts the user that it needs to move to a given location
+     * @param dx The change in X
+     * @param dy The change in Y
+     */
     HumanController.prototype.movePlayerTo = function(dx, dy) {
        this.player.move(this.player.x + dx, this.player.y + dy);
     };
@@ -1421,7 +1486,7 @@ window.Dyna = {
                 game = new Dyna.app.Game(level, levelView),
                 player1 = new Player("Computer 1"),
                 player2 = new Player("Player 2"),
-                controller1 = new Dyna.app.ComputerController(player1, map),
+                controller1 = new Dyna.app.ComputerController(player1, level, map),
                 controller2 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "w" : Player.UP,

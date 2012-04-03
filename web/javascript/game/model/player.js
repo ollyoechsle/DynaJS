@@ -84,6 +84,15 @@
         this.bombsLaid--;
     };
 
+    /**
+     * Returns the rough distance to a point
+     * @param {Number} x
+     * @param {Number} y
+     */
+    Player.prototype.distanceTo = function(x, y) {
+        return Math.abs(this.x - x) + Math.abs(this.y - y);
+    };
+
     Player.UP = "up";
     Player.DOWN = "down";
     Player.LEFT = "left";

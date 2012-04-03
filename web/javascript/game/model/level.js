@@ -28,7 +28,7 @@
             log("No room for this player on the map");
         }
     };
-
+    
     Level.prototype.handleBombAdded = function(bomb) {
         this.fire(Level.BOMB_ADDED, bomb);
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExploded.bind(this));

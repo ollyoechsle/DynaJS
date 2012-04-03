@@ -3,12 +3,14 @@
     function Map(width, height, settings) {
         this.width = width;
         this.height = height;
+        this.maxDistance = width + height;
         this.playerPositions = [];
         this._createMap(settings);
     }
 
     Map.prototype.width = null;
     Map.prototype.height = null;
+    Map.prototype.maxDistance = null;
     Map.prototype.data = null;
     Map.prototype.playerPositions = null;
 

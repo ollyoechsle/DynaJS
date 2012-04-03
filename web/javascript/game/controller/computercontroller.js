@@ -2,7 +2,6 @@
  * Things remaining for the computer controller
  * - Acting in a fuzzy, rather than strictly deterministic manner
  * - Being able to change course to avoid danger
- * - Turning to face the direction of travel
  * - Laying bombs on the way to a destination if useful
  * - Favouring paths that turn corners
  */
@@ -11,9 +10,12 @@
     /**
      * @constructor
      * @param {Dyna.model.Player} player The player to control
+     * @param {Dyna.model.Level} level Provides access to the positions of other players
+     * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      */
-    function ComputerController(player, map) {
+    function ComputerController(player, level, map) {
         this.player = player;
+        this.level = level;
         this.map = map;
         this.initialise();
     }
@@ -67,10 +69,16 @@
     ComputerController.prototype.takeNextStep = function() {
         if (this.currentPath) {
             if (this.currentPath.length) {
-                var nextStep = this.currentPath.shift();
-                this.player.move(nextStep.x, nextStep.y);
+                var nextStep = this.currentPath[0], fbi = Dyna.service.FBI.instance;
+                // if the next square is safe, or if the current space is in danger, move
+                if (!fbi.estimateDangerAt(nextStep.x, nextStep.y) || fbi.estimateDangerAt(this.player.x, this.player.y)) {
+                    this.player.move(nextStep.x, nextStep.y);
+                    this.currentPath.shift();
+                } else {
+                    // freeze!
+                }
             } else {
-                if (this.layingBombWillNotHarmMe()) {
+                if (this.layingBombHereIsAGoodIdea(this.player.x, this.player.y)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;
@@ -84,8 +92,17 @@
      * has already laid one bomb. Otherwise the player tends to make silly decisions
      * resulting in lethal chain reactions :s
      */
-    ComputerController.prototype.layingBombWillNotHarmMe = function() {
-        return this.player.bombsLaid == 0;
+    ComputerController.prototype.layingBombHereIsAGoodIdea = function(x, y) {
+
+        // don't lay more than one bomb at once
+        if (this.player.bombsLaid > 0) {
+            return false;
+        }
+
+        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
+        return possibleExplosion.blocksAffected > 0;
+        // todo: include check to see if enemies might killed
+
     };
 
     /**
@@ -116,11 +133,26 @@
             score += 10;
         }
 
-        // less points for being the current position
+        // points for being closer to other players
+        var minDistance = this.map.maxDistance;
+        for (var i = 0; i < this.level.players.length; i++) {
+            var player = this.level.players[i];
+            if (player !== this.player) {
+                var distance = player.distanceTo(x, y);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                }
+            }
+        }
+        var percentDistance = minDistance / this.map.maxDistance;
+        score += (1 - percentDistance);
+
+        // fewer points for being the current position
         if (x == this.player.x && y == this.player.y) {
             score -= 2;
         }
 
+        // fewer points for the square being in imminent danger
         if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
             score -= 20;
         }
