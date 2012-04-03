@@ -10,14 +10,17 @@
     FBI.prototype.level = null;
 
     /**
-     * A list of all the bombs currently on the map
+     * A list of all the bombs currently on the map with their projected explosions
      * @type {Object}
      */
     FBI.prototype.intelligence = null;
 
     FBI.prototype.handleBombThreat = function(bomb) {
         log("FBI has had a report of a bomb threat at " + bomb.id);
-        this.intelligence[bomb.id] = bomb;
+        this.intelligence[bomb.id] = {
+            bomb: bomb,
+            explosion: Dyna.model.Explosion.create(this.level.map, bomb.x, bomb.y, bomb.power)
+        };
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExplosion.bind(this));
     };
 
@@ -26,10 +29,16 @@
         delete this.intelligence[bomb.id];
     };
 
+    /**
+     * Returns whether the given position is in imminent danger of being blown up by a bomb.
+     * @param {Number} x The X coordinate
+     * @param {Number} y The Y coordinate
+     */
     FBI.prototype.estimateDangerAt = function(x, y) {
-        for (var bombId in this.intelligence) {
-            var bomb = this.intelligence[bombId];
-            if (bomb.x == x && bomb.y == y) {
+        var bombId, intelligence;
+        for (bombId in this.intelligence) {
+            intelligence = this.intelligence[bombId];
+            if (intelligence.bomb.at(x, y) || intelligence.explosion.affects(x, y)) {
                 return 1;
             }
         }
