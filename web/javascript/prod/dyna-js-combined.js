@@ -765,8 +765,26 @@ window.Dyna = {
         this.power++;
     };
 
-    Player.prototype.move = function(dx, dy, direction) {
-        this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
+    /**
+     * Makes the player request a move to a new position.
+     * @param {Number} nx The new position in X
+     * @param {Number} ny The new position in Y
+     */
+    Player.prototype.move = function(nx, ny) {
+
+        var direction;
+
+        if (this.x > nx) {
+            direction = 'west';
+        } else if (this.x < nx) {
+            direction = 'east';
+        } else if (this.y < ny) {
+            direction = 'south';
+        } else {
+            direction = 'north';
+        }
+
+        this.fire(Player.WANTS_TO_MOVE, this, nx, ny);
         this.fire(Player.DIRECTION_CHANGED, direction);
     };
 
@@ -1073,156 +1091,170 @@ window.Dyna = {
 
     Dyna.ui.PlayerView = PlayerView;
 
-})(window.Dyna, jQuery);(function(Dyna) {
+})(window.Dyna, jQuery);/**
+ * Things remaining for the computer controller
+ * - Acting in a fuzzy, rather than strictly deterministic manner
+ * - Being able to change course to avoid danger
+ * - Turning to face the direction of travel
+ * - Laying bombs on the way to a destination if useful
+ * - Favouring paths that turn corners
+ */
+(function(Dyna) {
 
-   /**
-    * @constructor
-    * @param {Dyna.model.Player} player The player to control
-    */
-   function ComputerController(player, map) {
-      this.player = player;
-      this.map = map;
-      this.initialise();
-   }
+    /**
+     * @constructor
+     * @param {Dyna.model.Player} player The player to control
+     */
+    function ComputerController(player, map) {
+        this.player = player;
+        this.map = map;
+        this.initialise();
+    }
 
-   /**
-    * The player to control
-    * @private
-    * @type {Dyna.model.Player}
-    */
-   ComputerController.prototype.player = null;
+    /**
+     * The player to control
+     * @private
+     * @type {Dyna.model.Player}
+     */
+    ComputerController.prototype.player = null;
 
-   /**
-    * Reference to the map, so the controller can explore
-    * @private
-    * @type {Dyna.model.Map}
-    */
-   ComputerController.prototype.map = null;
+    /**
+     * Reference to the map, so the controller can explore
+     * @private
+     * @type {Dyna.model.Map}
+     */
+    ComputerController.prototype.map = null;
 
-   /**
-    * The current path that the computer is walking along
-    * @private
-    * @type {Object[]}
-    */
-   ComputerController.prototype.currentPath = null;
+    /**
+     * The current path that the computer is walking along
+     * @private
+     * @type {Object[]}
+     */
+    ComputerController.prototype.currentPath = null;
 
-   /**
-    * Ensures that the controller will stop working if the player dies
-    * @private
-    */
-   ComputerController.prototype.initialise = function() {
-      this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
-      this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
-   };
+    /**
+     * Ensures that the controller will stop working if the player dies
+     * @private
+     */
+    ComputerController.prototype.initialise = function() {
+        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
+    };
 
-   /**
-    * Consider what to do with the player next
-    */
-   ComputerController.prototype.think = function() {
+    /**
+     * Consider what to do with the player next
+     */
+    ComputerController.prototype.think = function() {
 
-      if (!this.currentPath) {
-         this.chooseSomewhereToGo();
-      }
+        if (!this.currentPath) {
+            this.chooseSomewhereToGo();
+        }
 
-      this.takeNextStep();
+        this.takeNextStep();
 
-   };
+    };
 
-   /**
-    * Moves the player one step towards the destination
-    */
-   ComputerController.prototype.takeNextStep = function() {
-      if (this.currentPath) {
-         if (this.currentPath.length) {
-            var nextStep = this.currentPath.shift();
-            this.player.fire(Dyna.model.Player.WANTS_TO_MOVE, this.player, nextStep.x, nextStep.y);
-         } else {
-            if (this.layingBombWillNotHarmMe()) {
-               this.player.layBomb();
+    /**
+     * Moves the player one step towards the destination
+     */
+    ComputerController.prototype.takeNextStep = function() {
+        if (this.currentPath) {
+            if (this.currentPath.length) {
+                var nextStep = this.currentPath.shift();
+                this.player.move(nextStep.x, nextStep.y);
+            } else {
+                if (this.layingBombWillNotHarmMe()) {
+                    this.player.layBomb();
+                }
+                this.currentPath = null;
             }
-            this.currentPath = null;
-         }
-      }
-   };
+        }
+    };
 
-   ComputerController.prototype.layingBombWillNotHarmMe = function() {
-      return this.player.bombsLaid == 0;
-   };
+    /**
+     * Determines whether laying another bomb will cause more harm than good.
+     * For the sake of simplicity, at the moment this returns false if the player
+     * has already laid one bomb. Otherwise the player tends to make silly decisions
+     * resulting in lethal chain reactions :s
+     */
+    ComputerController.prototype.layingBombWillNotHarmMe = function() {
+        return this.player.bombsLaid == 0;
+    };
 
-   /**
-    * Finds some place for the player to go to
-    */
-   ComputerController.prototype.chooseSomewhereToGo = function() {
+    /**
+     * Finds some place for the player to go to
+     */
+    ComputerController.prototype.chooseSomewhereToGo = function() {
 
-      var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
-         potentialDestinations = pathFinder.getAvailableDestinations(),
-         chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
+        var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
+            potentialDestinations = pathFinder.getAvailableDestinations(),
+            chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
 
-      if (chosenDestination) {
-         this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
-      }
+        if (chosenDestination) {
+            this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
+        }
 
-   };
+    };
 
-   ComputerController.prototype.getScoreForDestination = function(x, y) {
+    ComputerController.prototype.getScoreForDestination = function(x, y) {
 
-      var score = 0;
+        var score = 0;
 
-      // get points for blowing up walls
-      var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
-      score += possibleExplosion.blocksAffected;
+        // get points for blowing up walls
+        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
+        score += possibleExplosion.blocksAffected;
 
-      // points for power ups
-      if (this.map.isPowerUp(x, y)) {
-         score += 10;
-      }
+        // points for power ups
+        if (this.map.isPowerUp(x, y)) {
+            score += 10;
+        }
 
-      // less points for being the current position
-      if (x == this.player.x && y == this.player.y) {
-         score -= 2;
-      }
+        // less points for being the current position
+        if (x == this.player.x && y == this.player.y) {
+            score -= 2;
+        }
 
-      if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
-         score -= 20;
-      }
+        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
+            score -= 20;
+        }
 
-      return score;
+        return score;
 
-   };
+    };
 
-   /**
-    * Chooses a destination to travel to from a list of potential destinations
-    * @param {Object[]} potentialDestinations The list of destinations
-    */
-   ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
+    /**
+     * Chooses a destination to travel to from a list of potential destinations
+     * @param {Object[]} potentialDestinations The list of destinations
+     */
+    ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
 
-      var maxScore = 0, destination, chosenDestination, score;
+        var maxScore = 0, destination, chosenDestination, score;
 
-      for (var i = 0; i < potentialDestinations.length; i++) {
+        for (var i = 0; i < potentialDestinations.length; i++) {
 
-         destination = potentialDestinations[i];
-         score = this.getScoreForDestination(destination.x, destination.y);
+            destination = potentialDestinations[i];
+            score = this.getScoreForDestination(destination.x, destination.y);
 
-         if (score > maxScore) {
-            maxScore = score;
-            chosenDestination = destination;
-         }
+            if (score > maxScore) {
+                maxScore = score;
+                chosenDestination = destination;
+            }
 
-      }
+        }
 
-      return chosenDestination;
-   };
+        return chosenDestination;
+    };
 
-   /**
-    * Stops the computer controller from affecting the player
-    */
-   ComputerController.prototype.stopControlling = function() {
-      window.clearInterval(this.interval);
-   };
+    /**
+     * Stops the computer controller from affecting the player
+     */
+    ComputerController.prototype.stopControlling = function() {
+        window.clearInterval(this.interval);
+    };
 
-   ComputerController.SPEED = 500;
+    ComputerController.SPEED = 500;
 
-   Dyna.app.ComputerController = ComputerController;
+    Dyna.app.ComputerController = ComputerController;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -1326,17 +1358,21 @@ window.Dyna = {
 
     /**
      * Sets up some controls to allow the player to be controlled by a human
-     * @param {Dyna.util.KeyboardInput} keyboardInput The input method                                                  
+     * @param {Dyna.util.KeyboardInput} keyboardInput The input method
      */
     HumanController.prototype.withControls = function(keyboardInput) {
-        var player = this.player;
+        var movePlayerTo = this.movePlayerTo;
         this.keyboardInput = keyboardInput;
-        keyboardInput.on(Dyna.model.Player.UP, player.move.bind(player, 0, -1, 'north'));
-        keyboardInput.on(Dyna.model.Player.DOWN, player.move.bind(player, 0, +1, 'south'));
-        keyboardInput.on(Dyna.model.Player.LEFT, player.move.bind(player, -1, 0, 'west'));
-        keyboardInput.on(Dyna.model.Player.RIGHT, player.move.bind(player, +1, 0, 'east'));
-        keyboardInput.on(Dyna.model.Player.ENTER, player.layBomb.bind(player));
+        keyboardInput.on(Dyna.model.Player.UP, movePlayerTo.bind(this, 0, -1));
+        keyboardInput.on(Dyna.model.Player.DOWN, movePlayerTo.bind(this, 0, +1));
+        keyboardInput.on(Dyna.model.Player.LEFT, movePlayerTo.bind(this, -1, 0));
+        keyboardInput.on(Dyna.model.Player.RIGHT, movePlayerTo.bind(this, +1, 0));
+        keyboardInput.on(Dyna.model.Player.ENTER, this.player.layBomb.bind(this.player));
         return this;
+    };
+
+    HumanController.prototype.movePlayerTo = function(dx, dy) {
+       this.player.move(this.player.x + dx, this.player.y + dy);
     };
 
     /**

@@ -36,8 +36,26 @@
         this.power++;
     };
 
-    Player.prototype.move = function(dx, dy, direction) {
-        this.fire(Player.WANTS_TO_MOVE, this, this.x + dx, this.y + dy);
+    /**
+     * Makes the player request a move to a new position.
+     * @param {Number} nx The new position in X
+     * @param {Number} ny The new position in Y
+     */
+    Player.prototype.move = function(nx, ny) {
+
+        var direction;
+
+        if (this.x > nx) {
+            direction = 'west';
+        } else if (this.x < nx) {
+            direction = 'east';
+        } else if (this.y < ny) {
+            direction = 'south';
+        } else {
+            direction = 'north';
+        }
+
+        this.fire(Player.WANTS_TO_MOVE, this, nx, ny);
         this.fire(Player.DIRECTION_CHANGED, direction);
     };
 
