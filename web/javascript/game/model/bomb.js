@@ -1,18 +1,21 @@
 (function(Dyna) {
 
+    var id = 0;
+
     /**
      * Constructor
      */
     function Bomb(x, y, power) {
 
         this.superclass.constructor.call(this);
-        log("Creating bomb");
+
+        this.id = ++id;
         this.x = x;
         this.y = y;
         this.exploded = false;
         this.power = power;
-        this.id = x + "." + y;
 
+        log("Creating bomb", this.id);
         this.startTicking();
 
     }
@@ -43,6 +46,10 @@
         this.timer = null;
         this.exploded = true;
         this.fire(Bomb.EXPLODE, this.x, this.y, this.power, this);
+    };
+
+    Bomb.prototype.at = function(x, y) {
+        return this.x == x && this.y == y;
     };
 
     /** @event */
