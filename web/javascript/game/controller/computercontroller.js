@@ -14,13 +14,15 @@
      * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      * @param {Dyna.ai.DestinationChooser} destinationChooser Makes decisions about where to go
      * @param {Dyna.ai.Bomber} bomber Decides when to lay bombs
+     * @param {Dyna.ai.Walker} bomber Decides when to take a step
      */
-    function ComputerController(player, level, map, destinationChooser, bomber) {
+    function ComputerController(player, level, map, destinationChooser, bomber, walker) {
         this.player = player;
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
         this.bomber = bomber;
+        this.walker = walker;
         this.initialise();
     }
 
@@ -60,7 +62,14 @@
     ComputerController.prototype.bomber = null;
 
     /**
-     * Ensures that the controller will stop working if the player dies
+     * Decides when to walk
+     * @private
+     * @type {Dyna.ai.Walker}
+     */
+    ComputerController.prototype.walker = null;
+
+    /**
+     * Ensures that the controller stops operating if the player dies
      * @private
      */
     ComputerController.prototype.initialise = function() {
@@ -87,9 +96,8 @@
     ComputerController.prototype.takeNextStep = function() {
         if (this.currentPath) {
             if (this.currentPath.length) {
-                var nextStep = this.currentPath[0], fbi = Dyna.service.FBI.instance;
-                // if the next square is safe, or if the current space is in danger, move
-                if (!fbi.estimateDangerAt(nextStep.x, nextStep.y) || fbi.estimateDangerAt(this.player.x, this.player.y)) {
+                var nextStep = this.currentPath[0];
+                if (this.walker.shouldWalkTo(nextStep.x, nextStep.y, this.player)) {
                     this.player.move(nextStep.x, nextStep.y);
                     this.currentPath.shift();
                 } else {
@@ -124,7 +132,6 @@
         }
 
     };
-
 
     /**
      * Stops the computer controller from affecting the player
