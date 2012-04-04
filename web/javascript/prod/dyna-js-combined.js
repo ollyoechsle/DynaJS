@@ -1136,14 +1136,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Dyna.ui.PlayerView = PlayerView;
 
-})(window.Dyna, jQuery);/**
- * Things remaining for the computer controller
- * - Acting in a fuzzy, rather than strictly deterministic manner
- * - Being able to change course to avoid danger
- * - Laying bombs on the way to a destination if useful
- * - Favouring paths that turn corners
- */
-(function(Dyna) {
+})(window.Dyna, jQuery);(function(Dyna) {
 
     /**
      * @constructor
@@ -1235,6 +1228,10 @@ Math.randomGaussian = function(mean, standardDeviation) {
         if (this.currentPath) {
             if (this.currentPath.length) {
                 var nextStep = this.currentPath[0];
+                if (this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
+                    this.player.layBomb();
+                }
+                // todo: change course if the current path is now too dangerous or a better one has come up
                 if (this.walker.shouldWalkTo(nextStep.x, nextStep.y, this.player)) {
                     this.player.move(nextStep.x, nextStep.y);
                     this.currentPath.shift();
@@ -1449,12 +1446,25 @@ Math.randomGaussian = function(mean, standardDeviation) {
         // don't lay more than one bomb at once
         if (me.bombsLaid > 0) {
             return false;
+            // todo: return true if laying the second bomb won't hurt me
         }
 
         var possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
         return possibleExplosion.blocksAffected > 0;
         // todo: include check to see if enemies might killed
 
+    };
+
+    /**
+     * Decides whether a bomb can be laid on route
+     * @param {Object[]} route The remaining route
+     * @param {Number} x The X position
+     * @param {Number} y The Y position
+     * @param {Dyna.model.Player} me The player who is me
+     */
+    Bomber.prototype.canLayBombOnRoute = function(route, x, y, me) {
+        // todo: clever logic needed
+        return false
     };
 
     Dyna.ai.Bomber = Bomber;
@@ -1503,7 +1513,10 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     DestinationChooser.prototype.getScoreForDestination = function(x, y, level, map, me) {
 
+        // todo: allow the decisions made here to be more fuzzy
         var score = 0, possibleExplosion;
+
+        // todo: favour destinations which turn the user away from the explosion as soon as possible
 
         // get points for blowing up walls
         possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);

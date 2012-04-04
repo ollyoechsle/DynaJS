@@ -1,10 +1,3 @@
-/**
- * Things remaining for the computer controller
- * - Acting in a fuzzy, rather than strictly deterministic manner
- * - Being able to change course to avoid danger
- * - Laying bombs on the way to a destination if useful
- * - Favouring paths that turn corners
- */
 (function(Dyna) {
 
     /**
@@ -97,6 +90,10 @@
         if (this.currentPath) {
             if (this.currentPath.length) {
                 var nextStep = this.currentPath[0];
+                if (this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
+                    this.player.layBomb();
+                }
+                // todo: change course if the current path is now too dangerous or a better one has come up
                 if (this.walker.shouldWalkTo(nextStep.x, nextStep.y, this.player)) {
                     this.player.move(nextStep.x, nextStep.y);
                     this.currentPath.shift();

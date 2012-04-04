@@ -42,7 +42,10 @@
      */
     DestinationChooser.prototype.getScoreForDestination = function(x, y, level, map, me) {
 
+        // todo: allow the decisions made here to be more fuzzy
         var score = 0, possibleExplosion;
+
+        // todo: favour destinations which turn the user away from the explosion as soon as possible
 
         // get points for blowing up walls
         possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
