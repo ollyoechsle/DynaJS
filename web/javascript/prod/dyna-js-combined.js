@@ -1151,12 +1151,14 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Dyna.model.Level} level Provides access to the positions of other players
      * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      * @param {Dyna.ai.DestinationChooser} destinationChooser Makes decisions about where to go
+     * @param {Dyna.ai.Bomber} bomber Decides when to lay bombs
      */
-    function ComputerController(player, level, map, destinationChooser) {
+    function ComputerController(player, level, map, destinationChooser, bomber) {
         this.player = player;
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
+        this.bomber = bomber;
         this.initialise();
     }
 
@@ -1187,6 +1189,13 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @type {Dyna.ai.DestinationChooser}
      */
     ComputerController.prototype.destinationChooser = null;
+
+    /**
+     * Decides when to lay bombs
+     * @private
+     * @type {Dyna.ai.Bomber}
+     */
+    ComputerController.prototype.bomber = null;
 
     /**
      * Ensures that the controller will stop working if the player dies
@@ -1226,31 +1235,12 @@ Math.randomGaussian = function(mean, standardDeviation) {
                     log("Freezing!");
                 }
             } else {
-                if (this.layingBombHereIsAGoodIdea(this.player.x, this.player.y)) {
+                if (this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;
             }
         }
-    };
-
-    /**
-     * Determines whether laying another bomb will cause more harm than good.
-     * For the sake of simplicity, at the moment this returns false if the player
-     * has already laid one bomb. Otherwise the player tends to make silly decisions
-     * resulting in lethal chain reactions :s
-     */
-    ComputerController.prototype.layingBombHereIsAGoodIdea = function(x, y) {
-
-        // don't lay more than one bomb at once
-        if (this.player.bombsLaid > 0) {
-            return false;
-        }
-
-        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
-        return possibleExplosion.blocksAffected > 0;
-        // todo: include check to see if enemies might killed
-
     };
 
     /**
@@ -1434,6 +1424,36 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
 })(window.Dyna);(function(Dyna) {
 
+    function Bomber() {
+    }
+
+    /**
+     * Determines whether laying another bomb will cause more harm than good.
+     * For the sake of simplicity, at the moment this returns false if the player
+     * has already laid one bomb. Otherwise the player tends to make silly decisions
+     * resulting in lethal chain reactions :s
+     * @param {Number} x The X position
+     * @param {Number} y The Y position
+     * @param {Dyna.model.Map} map
+     * @param {Dyna.model.Player} me The player who is me
+     */
+    Bomber.prototype.layingBombHereIsAGoodIdea = function(x, y, map, me) {
+
+        // don't lay more than one bomb at once
+        if (me.bombsLaid > 0) {
+            return false;
+        }
+
+        var possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
+        return possibleExplosion.blocksAffected > 0;
+        // todo: include check to see if enemies might killed
+
+    };
+
+    Dyna.ai.Bomber = Bomber;
+
+})(window.Dyna);(function(Dyna) {
+
     function DestinationChooser() {
     }
 
@@ -1576,7 +1596,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
             player1 = new Player("Computer 1"),
             player2 = new Player("Player 2"),
             destinationChooser = new Dyna.ai.DestinationChooser(),
-            controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser),
+            bomber = new Dyna.ai.Bomber(),
+            controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber),
             controller2 = new Dyna.app.HumanController(player2).withControls(
                 new Dyna.util.KeyboardInput(keyboard, {
                     "w" : Player.UP,

@@ -13,12 +13,14 @@
      * @param {Dyna.model.Level} level Provides access to the positions of other players
      * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      * @param {Dyna.ai.DestinationChooser} destinationChooser Makes decisions about where to go
+     * @param {Dyna.ai.Bomber} bomber Decides when to lay bombs
      */
-    function ComputerController(player, level, map, destinationChooser) {
+    function ComputerController(player, level, map, destinationChooser, bomber) {
         this.player = player;
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
+        this.bomber = bomber;
         this.initialise();
     }
 
@@ -49,6 +51,13 @@
      * @type {Dyna.ai.DestinationChooser}
      */
     ComputerController.prototype.destinationChooser = null;
+
+    /**
+     * Decides when to lay bombs
+     * @private
+     * @type {Dyna.ai.Bomber}
+     */
+    ComputerController.prototype.bomber = null;
 
     /**
      * Ensures that the controller will stop working if the player dies
@@ -88,31 +97,12 @@
                     log("Freezing!");
                 }
             } else {
-                if (this.layingBombHereIsAGoodIdea(this.player.x, this.player.y)) {
+                if (this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;
             }
         }
-    };
-
-    /**
-     * Determines whether laying another bomb will cause more harm than good.
-     * For the sake of simplicity, at the moment this returns false if the player
-     * has already laid one bomb. Otherwise the player tends to make silly decisions
-     * resulting in lethal chain reactions :s
-     */
-    ComputerController.prototype.layingBombHereIsAGoodIdea = function(x, y) {
-
-        // don't lay more than one bomb at once
-        if (this.player.bombsLaid > 0) {
-            return false;
-        }
-
-        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
-        return possibleExplosion.blocksAffected > 0;
-        // todo: include check to see if enemies might killed
-
     };
 
     /**
