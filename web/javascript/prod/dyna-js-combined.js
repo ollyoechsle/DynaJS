@@ -1,10 +1,11 @@
 window.Dyna = {
     app: {},
-    util: {},
-    ui: {},
+    ai: {},
+    events: {},
     model: {},
     service: {},
-    events: {}
+    util: {},
+    ui: {}
 };if (!Function.prototype.bind) {
     Function.prototype.bind = function (oThis) {
         if (typeof this !== "function") {
@@ -29,7 +30,33 @@ window.Dyna = {
 
         return fBound;
     };
-}Object.extend = function (SubClass, SuperClass) {
+}/**
+ * Returns a Gaussian Random Number with mean 0.0 and std deviation 1.0;
+ * @param {Number} mean The mean value, default 0.0
+ * @param {Number} standardDeviation The standard deviation, default 1.0
+ */
+Math.randomGaussian = function(mean, standardDeviation) {
+
+    mean = mean || 0.0;
+    standardDeviation = isNaN(standardDeviation) ? 1.0 : standardDeviation;
+
+    if (this.hasAnotherGaussian) {
+        this.hasAnotherGaussian = false;
+        return (this.nextGaussian * standardDeviation) + mean;
+    } else {
+        var v1, v2, s, multiplier;
+        do {
+            v1 = 2 * Math.random() - 1; // between -1 and 1
+            v2 = 2 * Math.random() - 1; // between -1 and 1
+            s = v1 * v1 + v2 * v2;
+        } while (s >= 1 || s == 0);
+        multiplier = Math.sqrt(-2 * Math.log(s) / s);
+        this.nextGaussian = v2 * multiplier;
+        this.hasAnotherGaussian = true;
+        return (v1 * multiplier * standardDeviation) + mean;
+    }
+
+};Object.extend = function (SubClass, SuperClass) {
 
     function F() {}
     F.prototype = SuperClass.prototype;
@@ -680,7 +707,6 @@ window.Dyna = {
         }
     };
 
-
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
         return tile && !tile.solid;
@@ -1124,11 +1150,13 @@ window.Dyna = {
      * @param {Dyna.model.Player} player The player to control
      * @param {Dyna.model.Level} level Provides access to the positions of other players
      * @param {Dyna.model.Map} map Allows the controller to navigate around the map
+     * @param {Dyna.ai.DestinationChooser} destinationChooser Makes decisions about where to go
      */
-    function ComputerController(player, level, map) {
+    function ComputerController(player, level, map, destinationChooser) {
         this.player = player;
         this.level = level;
         this.map = map;
+        this.destinationChooser = destinationChooser;
         this.initialise();
     }
 
@@ -1152,6 +1180,13 @@ window.Dyna = {
      * @type {Object[]}
      */
     ComputerController.prototype.currentPath = null;
+
+    /**
+     * Chooses destinations from possibilities
+     * @private
+     * @type {Dyna.ai.DestinationChooser}
+     */
+    ComputerController.prototype.destinationChooser = null;
 
     /**
      * Ensures that the controller will stop working if the player dies
@@ -1188,6 +1223,7 @@ window.Dyna = {
                     this.currentPath.shift();
                 } else {
                     // freeze!
+                    log("Freezing!");
                 }
             } else {
                 if (this.layingBombHereIsAGoodIdea(this.player.x, this.player.y)) {
@@ -1224,7 +1260,12 @@ window.Dyna = {
 
         var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
             potentialDestinations = pathFinder.getAvailableDestinations(),
-            chosenDestination = this.chooseDestinationFrom(pathFinder.getAvailableDestinations());
+            chosenDestination = this.destinationChooser.chooseDestinationFrom(
+                pathFinder.getAvailableDestinations(),
+                this.level,
+                this.map,
+                this.player
+                );
 
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
@@ -1232,69 +1273,6 @@ window.Dyna = {
 
     };
 
-    ComputerController.prototype.getScoreForDestination = function(x, y) {
-
-        var score = 0;
-
-        // get points for blowing up walls
-        var possibleExplosion = Dyna.model.Explosion.create(this.map, x, y, this.player.power);
-        score += possibleExplosion.blocksAffected;
-
-        // points for power ups
-        if (this.map.isPowerUp(x, y)) {
-            score += 10;
-        }
-
-        // points for being closer to other players
-        var minDistance = this.map.maxDistance;
-        for (var i = 0; i < this.level.players.length; i++) {
-            var player = this.level.players[i];
-            if (player !== this.player) {
-                var distance = player.distanceTo(x, y);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                }
-            }
-        }
-        var percentDistance = minDistance / this.map.maxDistance;
-        score += (1 - percentDistance);
-
-        // fewer points for being the current position
-        if (x == this.player.x && y == this.player.y) {
-            score -= 2;
-        }
-
-        // fewer points for the square being in imminent danger
-        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
-            score -= 20;
-        }
-
-        return score;
-
-    };
-
-    /**
-     * Chooses a destination to travel to from a list of potential destinations
-     * @param {Object[]} potentialDestinations The list of destinations
-     */
-    ComputerController.prototype.chooseDestinationFrom = function(potentialDestinations) {
-
-        var maxScore = 0, destination, chosenDestination, score;
-
-        for (var i = 0; i < potentialDestinations.length; i++) {
-
-            destination = potentialDestinations[i];
-            score = this.getScoreForDestination(destination.x, destination.y);
-
-            if (score > maxScore) {
-                maxScore = score;
-                chosenDestination = destination;
-            }
-
-        }
-
-        return chosenDestination;
-    };
 
     /**
      * Stops the computer controller from affecting the player
@@ -1303,6 +1281,10 @@ window.Dyna = {
         window.clearInterval(this.interval);
     };
 
+    /**
+     * The interval during which the computer controller takes its turns.
+     * @type {Number}
+     */
     ComputerController.SPEED = 500;
 
     Dyna.app.ComputerController = ComputerController;
@@ -1452,6 +1434,105 @@ window.Dyna = {
 
 })(window.Dyna);(function(Dyna) {
 
+    function DestinationChooser() {
+    }
+
+    /**
+     * Chooses a destination to travel to from a list of potential destinations
+     * @param {Object[]} potentialDestinations The list of destinations
+     * @param {Dyna.model.Level} level
+     * @param {Dyna.model.Map} map
+     * @param {Dyna.model.Player} me The player who is me
+     */
+    DestinationChooser.prototype.chooseDestinationFrom = function(potentialDestinations, level, map, me) {
+
+        var maxScore = 0, destination, chosenDestination;
+
+        for (var i = 0; i < potentialDestinations.length; i++) {
+
+            destination = potentialDestinations[i];
+            destination.score = this.getScoreForDestination(destination.x, destination.y, level, map, me);
+
+            if (destination.score > maxScore) {
+                maxScore = destination.score;
+                chosenDestination = destination;
+            }
+
+        }
+
+        return chosenDestination;
+    };
+
+    /**
+     * Calculates a score for a destination based on a number of metrics including whether
+     * laying a bomb in that location would break walls, whether it is close to another player
+     * whether it is a powerup. Negative points are awarded for being especially dangerous etc.
+     * The higher the score returned, the better prospect the destination is.
+     * @param {Number} x The X position
+     * @param {Number} y The Y position
+     * @param {Dyna.model.Level} level
+     * @param {Dyna.model.Map} map
+     * @param {Dyna.model.Player} me The player who is me
+     */
+    DestinationChooser.prototype.getScoreForDestination = function(x, y, level, map, me) {
+
+        var score = 0, possibleExplosion;
+
+        // get points for blowing up walls
+        possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
+        score += possibleExplosion.blocksAffected;
+
+        // points for power ups
+        if (map.isPowerUp(x, y)) {
+            score += 10;
+        }
+
+        // points for being closer to other players
+        score += 2 * (1 - this.getDistanceToClosestPlayer(x, y, map, level.players, me));
+
+        // fewer points for being the current position
+        if (x == me.x && y == me.y) {
+            score -= 2;
+        }
+
+        // fewer points for the square being in imminent danger
+        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
+            score -= 20;
+        }
+
+        return score;
+
+    };
+
+    /**
+     * Returns the distance to the closest player who isn't me. This distance
+     * is expressed as a percentage, so if the closest player is as far as possible away
+     * the function would return 1. If the closest player is right next to the position
+     * the function will return 0.
+     * @param {Number} x The X position
+     * @param {Number} y The Y position
+     * @param {Dyna.model.Map} map
+     * @param {Dyna.model.Player[]} players All the players on the level
+     * @param {Dyna.model.Player} me The player who is me
+     */
+    DestinationChooser.prototype.getDistanceToClosestPlayer = function(x, y, map, players, me) {
+        var minDistance = map.maxDistance, player, i;
+        for (i = 0; i < players.length; i++) {
+            player = players[i];
+            if (player !== me) {
+                var distance = player.distanceTo(x, y);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                }
+            }
+        }
+        return minDistance / map.maxDistance;
+    };
+
+    Dyna.ai.DestinationChooser = DestinationChooser;
+
+})(window.Dyna);(function(Dyna) {
+
     function init() {
 
         log("Initialising DynaJS");
@@ -1462,39 +1543,48 @@ window.Dyna = {
 
         // eventing
         var
-                keyboard = new Dyna.util.Keyboard();
+            keyboard = new Dyna.util.Keyboard();
 
         // model
         var
-                map = new Dyna.model.Map(11, 11, {
-                    blocks: 0.75,
-                    powerups: 0.10
-                }),
-                level = new Dyna.model.Level("Level 1", map),
-                fbi = new Dyna.service.FBI(level);
+            map = new Dyna.model.Map(11, 11, {
+                blocks: 0.75,
+                powerups: 0.10
+            }),
+            level = new Dyna.model.Level("Level 1", map),
+            fbi = new Dyna.service.FBI(level);
 
         // view
         var
-                mapViewFactory = function(map) { return new Dyna.ui.MapView("#level .map", map) },
-                playerViewFactory = function(player) { return new Dyna.ui.PlayerView("#level .players", player) },
-                bombViewFactory = function(bomb) { return new Dyna.ui.BombView("#level .players", bomb) },
-                explosionViewFactory = function(explosion) { return new Dyna.ui.ExplosionView("#level .explosions", explosion, map) },
-                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
+            mapViewFactory = function(map) {
+                return new Dyna.ui.MapView("#level .map", map)
+            },
+            playerViewFactory = function(player) {
+                return new Dyna.ui.PlayerView("#level .players", player)
+            },
+            bombViewFactory = function(bomb) {
+                return new Dyna.ui.BombView("#level .players", bomb)
+            },
+            explosionViewFactory = function(explosion) {
+                return new Dyna.ui.ExplosionView("#level .explosions", explosion, map)
+            },
+            levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
 
         // controller
         var
-                game = new Dyna.app.Game(level, levelView),
-                player1 = new Player("Computer 1"),
-                player2 = new Player("Player 2"),
-                controller1 = new Dyna.app.ComputerController(player1, level, map),
-                controller2 = new Dyna.app.HumanController(player2).withControls(
-                        new Dyna.util.KeyboardInput(keyboard, {
-                            "w" : Player.UP,
-                            "s" : Player.DOWN,
-                            "a" : Player.LEFT,
-                            "d" : Player.RIGHT,
-                            "tab" : Player.ENTER
-                        }));
+            game = new Dyna.app.Game(level, levelView),
+            player1 = new Player("Computer 1"),
+            player2 = new Player("Player 2"),
+            destinationChooser = new Dyna.ai.DestinationChooser(),
+            controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser),
+            controller2 = new Dyna.app.HumanController(player2).withControls(
+                new Dyna.util.KeyboardInput(keyboard, {
+                    "w" : Player.UP,
+                    "s" : Player.DOWN,
+                    "a" : Player.LEFT,
+                    "d" : Player.RIGHT,
+                    "tab" : Player.ENTER
+                }));
 
         level.addPlayer(player1);
         level.addPlayer(player2);

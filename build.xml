@@ -36,6 +36,7 @@
             <fileset dir="web/javascript/game/model" includes="*.js"/>
             <fileset dir="web/javascript/game/view" includes="*.js"/>
             <fileset dir="web/javascript/game/controller" includes="*.js"/>
+            <fileset dir="web/javascript/game/ai" includes="*.js"/>
             <fileset dir="web/javascript/" includes="*.js"/>
         </concat>
 

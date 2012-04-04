@@ -1,8 +1,9 @@
 window.Dyna = {
     app: {},
-    util: {},
-    ui: {},
+    ai: {},
+    events: {},
     model: {},
     service: {},
-    events: {}
+    util: {},
+    ui: {}
 };
