@@ -178,8 +178,7 @@ body {
     height: 30px;
     z-index: 200;
 
-    -moz-border-radius: 30px;
-    -webkit-border-radius: 30px;
+    background: url(../gfx/expode.gif);
 
     -moz-animation: flame 1s;
     -webkit-animation: flame 1s;
@@ -188,44 +187,26 @@ body {
 @-moz-keyframes flame
 {
 0%   {
--moz-transform: scale(0)
-background-color: white;
 opacity: 1.0
--moz-transform: scale(0.1)
 }
-50%  {
--moz-transform: scale(1.0);
-background-color: yellow;
+70%  {
 opacity: 1.0
--moz-transform: scale(1.0)
 }
 100%  {
--moz-transform: scale(0.8);
-background-color: red;
 opacity: 0.0
--moz-transform: scale(0.2 )
 }
 }
 
 @-webkit-keyframes flame
 {
 0%   {
--webkit-transform: scale(0)
-background-color: white;
 opacity: 1.0
--webkit-transform: scale(0.1)
 }
-50%  {
--webkit-transform: scale(1.0);
-background-color: yellow;
+70%  {
 opacity: 1.0
--webkit-transform: scale(1.0)
 }
 100%  {
--webkit-transform: scale(0.8);
-background-color: red;
 opacity: 0.0
--webkit-transform: scale(0.2 )
 }
 }
 
