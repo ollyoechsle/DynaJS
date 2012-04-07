@@ -1864,6 +1864,11 @@ Math.randomGaussian = function(mean, standardDeviation) {
     MenuControl.prototype.moveSelection = function(dir) {
         var selected = this.jMenu.find(".selected").removeClass("selected"),
             next = dir.getNext(selected);
+
+        if (!next.length) {
+            next = dir.getFirst(this.jMenu.find("li"));
+        }
+
         next.addClass("selected");
     };
 
@@ -1908,6 +1913,9 @@ Math.randomGaussian = function(mean, standardDeviation) {
     MenuControl.UP = {
         getNext: function(item) {
             return item.prev();
+        },
+        getFirst: function(items) {
+            return items.last();
         }
     };
 
@@ -1918,8 +1926,11 @@ Math.randomGaussian = function(mean, standardDeviation) {
     MenuControl.DOWN = {
         getNext: function(item) {
             return item.next();
+        },
+        getFirst: function(items) {
+            return items.first();
         }
-    }
+    };
 
     /**
      * When the user chooses the selected item

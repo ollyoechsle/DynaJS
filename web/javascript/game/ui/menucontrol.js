@@ -41,11 +41,16 @@
 
     /**
      * Moves the selection back or forth
-     * @param dir
+     * @param {Dyna.ui.MenuControl.UP|Dyna.ui.MenuControl.DOWN} dir The menu control direction
      */
     MenuControl.prototype.moveSelection = function(dir) {
         var selected = this.jMenu.find(".selected").removeClass("selected"),
             next = dir.getNext(selected);
+
+        if (!next.length) {
+            next = dir.getFirst(this.jMenu.find("li"));
+        }
+
         next.addClass("selected");
     };
 
@@ -90,6 +95,9 @@
     MenuControl.UP = {
         getNext: function(item) {
             return item.prev();
+        },
+        getFirst: function(items) {
+            return items.last();
         }
     };
 
@@ -100,8 +108,11 @@
     MenuControl.DOWN = {
         getNext: function(item) {
             return item.next();
+        },
+        getFirst: function(items) {
+            return items.first();
         }
-    }
+    };
 
     /**
      * When the user chooses the selected item
