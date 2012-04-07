@@ -6,6 +6,9 @@
      */
     function MenuControl(keyboardInput) {
         this.items = [];
+        keyboardInput.on(MenuControl.UP, this.moveSelection.bind(this, MenuControl.UP));
+        keyboardInput.on(MenuControl.DOWN, this.moveSelection.bind(this, MenuControl.DOWN));
+        keyboardInput.on(MenuControl.SELECT, this.chooseSelection.bind(this));
     }
 
     /**
@@ -37,6 +40,23 @@
     };
 
     /**
+     * Moves the selection back or forth
+     * @param dir
+     */
+    MenuControl.prototype.moveSelection = function(dir) {
+        var selected = this.jMenu.find(".selected").removeClass("selected"),
+            next = dir.getNext(selected);
+        next.addClass("selected");
+    };
+
+    /**
+     * Triggers a click on the selected item
+     */
+    MenuControl.prototype.chooseSelection = function() {
+        this.jMenu.find(".selected").click();
+    };
+
+    /**
      * Displays all the items on the menu control
      */
     MenuControl.prototype.showOn = function(jMenu) {
@@ -45,19 +65,49 @@
         this.jMenu.empty();
         for (i = 0,numItems = this.items.length; i < numItems; i++) {
             item = this.items[i];
-            jMenu.append(MenuControl.createMenuItem(item.text, item.callback));
+            if (!this.selectedItem) {
+                this.selectedItem = item;
+            }
+            jMenu.append(MenuControl.createMenuItem(item.text, item.callback, item === this.selectedItem));
         }
         return this;
     };
 
     /**
      * Creates a menu item
-     * @param text The item text
-     * @param callback A function to call when the item is selected
+     * @param {String} text The item text
+     * @param {Function} callback A function to call when the item is selected
+     * @param {Boolean} selected Whether the item is selected
      */
-    MenuControl.createMenuItem = function(text, callback) {
-        return jQuery("<li></li>").text(text).click(callback);
+    MenuControl.createMenuItem = function(text, callback, selected) {
+        return jQuery("<li></li>").text(text).click(callback).toggleClass("selected", selected);
     };
+
+    /**
+     * When the user goes up a selection
+     * @static
+     */
+    MenuControl.UP = {
+        getNext: function(item) {
+            return item.prev();
+        }
+    };
+
+    /**
+     * When the user moves the selection down
+     * @static
+     */
+    MenuControl.DOWN = {
+        getNext: function(item) {
+            return item.next();
+        }
+    }
+
+    /**
+     * When the user chooses the selected item
+     * @static
+     */
+    MenuControl.SELECT = "select";
 
     Dyna.ui.MenuControl = MenuControl;
 

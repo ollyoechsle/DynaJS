@@ -39,11 +39,12 @@
 
         // controls
         var
+            MenuControl = Dyna.ui.MenuControl,
             menuControlFactory = function() {
-                return new Dyna.ui.MenuControl(new Dyna.util.KeyboardInput(keyboard, {
-                    "up" : Player.UP,
-                    "down" : Player.DOWN,
-                    "enter" : Player.ENTER
+                return new MenuControl(new Dyna.util.KeyboardInput(keyboard, {
+                    "up" : MenuControl.UP,
+                    "down" : MenuControl.DOWN,
+                    "enter" : MenuControl.SELECT
                 }));
             };
 

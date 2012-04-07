@@ -48,7 +48,17 @@
     cursor: pointer;
 }
 
+.menuContainer ul.menu li.selected,
 .menuContainer ul.menu li:hover {
     background: #6899ff;
+    -moz-animation: pulsing 2s;
+    -moz-animation-iteration-count: infinite;
+}
+
+@-moz-keyframes pulsing
+{
+0%   {background-color: #6899ff;}
+50%  {background-color: #191970}
+100%  {background-color: #6899ff;}
 }
 
