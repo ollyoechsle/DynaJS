@@ -1063,6 +1063,46 @@ Math.randomGaussian = function(mean, standardDeviation) {
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
     /**
+     * @constructor
+     * @param {Dyna.app.Game} game The game
+     */
+    function GameOverView(jContainer, game) {
+        this.jContainer = jQuery(jContainer);
+        this.game = game;
+        this.initialise();
+    }
+
+    /**
+     * Reference to the game object
+     * @private
+     * @type {Dyna.app.Game}
+     */
+    GameOverView.prototype.game = null;
+
+    /**
+     * Starts listening for the game over message
+     * @private
+     */
+    GameOverView.prototype.initialise = function() {
+        Dyna.app.GlobalEvents.on("gameover", this.showGameOverMessage.bind(this));
+    };
+
+    /**
+     * Shows a game over message
+     * @private
+     */
+    GameOverView.prototype.showGameOverMessage = function() {
+        if (confirm("Game Over! Play again?")) {
+            // for now, just refresh the window
+            window.location.reload();
+        }
+    };
+
+    Dyna.ui.GameOverView = GameOverView;
+
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
+
+    /**
      * Constructor
      */
     function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory) {
@@ -1530,6 +1570,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Game.prototype.start = function() {
         log("Starting Dyna Game on level " + this.level.name);
+        Dyna.app.GlobalEvents.fire("gamestarted");
         this.levelView.updateAll();
     };
 
@@ -1801,6 +1842,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
         // controller
         var
             game = new Dyna.app.Game(level, levelView),
+            gameOverView = new Dyna.ui.GameOverView(game),
             player1 = new Player("Computer 1"),
             player2 = new Player("Player 2"),
             destinationChooser = new Dyna.ai.DestinationChooser(),

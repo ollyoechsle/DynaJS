@@ -49,6 +49,7 @@
 
     Game.prototype.start = function() {
         log("Starting Dyna Game on level " + this.level.name);
+        Dyna.app.GlobalEvents.fire("gamestarted");
         this.levelView.updateAll();
     };
 

@@ -40,6 +40,7 @@
         // controller
         var
             game = new Dyna.app.Game(level, levelView),
+            gameOverView = new Dyna.ui.GameOverView(game),
             player1 = new Player("Computer 1"),
             player2 = new Player("Player 2"),
             destinationChooser = new Dyna.ai.DestinationChooser(),
