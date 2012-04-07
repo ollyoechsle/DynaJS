@@ -21,6 +21,8 @@
             // todo: return true if laying the second bomb won't hurt me
         }
 
+        // todo: false if it would destroy a powerup
+
         var possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
         return possibleExplosion.blocksAffected > 0;
         // todo: include check to see if enemies might killed

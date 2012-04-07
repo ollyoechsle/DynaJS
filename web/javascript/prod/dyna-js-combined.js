@@ -553,7 +553,9 @@ Math.randomGaussian = function(mean, standardDeviation) {
 })(window.Dyna);(function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
+     * @param {String} name The name of the level
+     * @param {Dyna.model.Map} map The map being played on
      */
     function Level(name, map) {
 
@@ -567,25 +569,51 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Object.extend(Level, Dyna.events.CustomEvent);
 
+    /**
+     * The map
+     * @private
+     * @type {Dyna.model.Map}
+     */
     Level.prototype.map = null;
+
+    /**
+     * A list of all the players on the map
+     * @private
+     * @type {Dyna.model.Player[]}
+     */
     Level.prototype.players = [];
 
+    /**
+     * Adds a player and listens for events in the player's life
+     * @param {Dyna.model.Player} player The player just added
+     */
     Level.prototype.addPlayer = function(player) {
         if (this.map.findPositionFor(player)) {
             this.players.push(player);
             player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
             player.on(Dyna.model.Player.LAID_BOMB, this.handleBombAdded.bind(this));
+            player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
             this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
         }
     };
-    
+
+    /**
+     * Handles a bomb added, and starts to listen for explosion
+     * @param {Dyna.model.Bomb} bomb The bomb
+     */
     Level.prototype.handleBombAdded = function(bomb) {
         this.fire(Level.BOMB_ADDED, bomb);
         bomb.on(Dyna.model.Bomb.EXPLODE, this.handleBombExploded.bind(this));
     };
 
+    /**
+     * Destroys tiles affected by an exposion
+     * @param {Number} x The X coordinate
+     * @param {Number} y The Y coordinate
+     * @param {Number} power The power of the bomb
+     */
     Level.prototype.handleBombExploded = function(x, y, power) {
 
         var explosion = Dyna.model.Explosion.create(this.map, x, y, power);
@@ -599,6 +627,12 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     };
 
+    /**
+     * Manages power ups and allows players to move
+     * @param {Dyna.model.Player} player
+     * @param {Number} x The X position where the player wants to move to
+     * @param {Number} y The Y position where the player wants to move to
+     */
     Level.prototype.handlePlayerMove = function(player, x, y) {
         if (this.map.isFree(x, y)) {
             player.moveTo(x, y);
@@ -607,6 +641,37 @@ Math.randomGaussian = function(mean, standardDeviation) {
                 player.powerUp();
             }
         }
+    };
+
+    /**
+     * Handles the event where a player dies
+     */
+    Level.prototype.handlePlayerDied = function() {
+        if (this.getRemainingPlayers().length <= 1) {
+            window.setTimeout(this.endLevel.bind(this), 3000);
+        }
+    };
+
+    /**
+     * Gets the remaining living players
+     * @return {Dyna.model.Player[]}
+     */
+    Level.prototype.getRemainingPlayers = function() {
+        var playersStillAlive = [];
+        for (var i = 0; i < this.players.length; i++) {
+            var player = this.players[i];
+            if (!player.dead) {
+                playersStillAlive.push(player);
+            }
+        }
+        return playersStillAlive;
+    };
+
+    /**
+     * Fires the end level event with the remaining living players
+     */
+    Level.prototype.endLevel = function() {
+        this.fire(Level.ENDED, this.getRemainingPlayers());
     };
 
     /** @event */
@@ -620,6 +685,9 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /** @event */
     Level.LEVEL_UP = "levelUp";
+
+    /** @event */
+    Level.ENDED = "ended";
 
     Dyna.model.Level = Level;
 
@@ -781,6 +849,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Object.extend(Player, Dyna.events.CustomEvent);
 
     Player.prototype.name = null;
+    Player.prototype.dead = false;
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
@@ -842,6 +911,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     Player.prototype.die = function() {
+        this.dead = true;
         this.fire(Player.DIED);
     };
 
@@ -1182,6 +1252,42 @@ Math.randomGaussian = function(mean, standardDeviation) {
     /**
      * @constructor
      * @param {Dyna.model.Player} player The player to control
+     */
+    function BasicController(player) {
+        this.player = player;
+        this.initialiseEvents();
+    }
+
+    /**
+     * The player to control
+     * @protected
+     * @type {Dyna.model.Player}
+     */
+    BasicController.prototype.player = null;
+
+    /**
+     * @private
+     * Stops control when the player dies or when the game ends
+     */
+    BasicController.prototype.initialiseEvents = function() {
+        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        Dyna.app.GlobalEvents.on("gameover", this.stopControlling.bind(this));
+    };
+
+    /**
+     * Stops the computer controller from affecting the player
+     */
+    BasicController.prototype.stopControlling = function() {
+        log("Controller should stop controlling here")
+    };
+
+    Dyna.app.BasicController = BasicController;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * @constructor
+     * @param {Dyna.model.Player} player The player to control
      * @param {Dyna.model.Level} level Provides access to the positions of other players
      * @param {Dyna.model.Map} map Allows the controller to navigate around the map
      * @param {Dyna.ai.DestinationChooser} destinationChooser Makes decisions about where to go
@@ -1189,21 +1295,16 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Dyna.ai.Walker} bomber Decides when to take a step
      */
     function ComputerController(player, level, map, destinationChooser, bomber, walker) {
-        this.player = player;
+        this.superclass.constructor.call(this, player);
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
         this.bomber = bomber;
         this.walker = walker;
-        this.initialise();
+        this.initialiseAnimation();
     }
 
-    /**
-     * The player to control
-     * @private
-     * @type {Dyna.model.Player}
-     */
-    ComputerController.prototype.player = null;
+    Object.extend(ComputerController, Dyna.app.BasicController);
 
     /**
      * Reference to the map, so the controller can explore
@@ -1244,8 +1345,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * Ensures that the controller stops operating if the player dies
      * @private
      */
-    ComputerController.prototype.initialise = function() {
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+    ComputerController.prototype.initialiseAnimation = function() {
         this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
     };
 
@@ -1379,25 +1479,49 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Dyna.service.FBI = FBI;
 
-})(window.Dyna);(function(Dyna) {
+})(window.Dyna);/**
+ * Takes care of the main game logic. Winning, losing etc.
+ */
+(function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
+     * @param {Dyna.model.Level} level The level
+     * @param {Dyna.ui.LevelView} levelView The view for the level
      */
     function Game(level, levelView) {
 
-        log("Starting Dyna Game on level " + level.name);
+
         this.level = level;
         this.levelView = levelView;
+        this.players = [];
+
         this._initialiseEvents();
-                                                       
+
     }
 
+    /**
+     * @private
+     * @type {Dyna.model.Level}
+     */
     Game.prototype.level = null;
+
+    /**
+     * @private
+     * @type {Dyna.ui.LevelView}
+     */
     Game.prototype.levelView = null;
 
+    Game.prototype.players = null;
+
     Game.prototype._initialiseEvents = function() {
+        this.level.on(Dyna.model.Level.ENDED, this.gameOver.bind(this));
         Dyna.app.GlobalEvents.on("pause", this.pause.bind(this));
+    };
+
+    Game.prototype.gameOver = function(remainingPlayers) {
+        log("Game Over", remainingPlayers)
+        Dyna.app.GlobalEvents.fire("gameover");
     };
 
     Game.prototype.pause = function() {
@@ -1405,6 +1529,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     Game.prototype.start = function() {
+        log("Starting Dyna Game on level " + this.level.name);
         this.levelView.updateAll();
     };
 
@@ -1413,19 +1538,14 @@ Math.randomGaussian = function(mean, standardDeviation) {
 })(window.Dyna);(function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
      * @param player The player to control
      */
     function HumanController(player) {
-        this.player = player;
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        this.superclass.constructor.call(this, player);
     }
 
-    /**
-     * The player to control
-     * @type {Dyna.model.Player}
-     */
-    HumanController.prototype.player = null;
+    Object.extend(HumanController, Dyna.app.BasicController);
 
     /**
      * The input method.
@@ -1454,15 +1574,16 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param dy The change in Y
      */
     HumanController.prototype.movePlayerTo = function(dx, dy) {
-       this.player.move(this.player.x + dx, this.player.y + dy);
+        this.player.move(this.player.x + dx, this.player.y + dy);
     };
 
     /**
      * Stops the input method from affecting the player
      */
     HumanController.prototype.stopControlling = function() {
-        this.keyboardInput.unsubscribeAll();
-        this.keyboardInput = null;
+        if (this.keyboardInput) {
+            this.keyboardInput.unsubscribeAll();
+        }
     };
 
     Dyna.app.HumanController = HumanController;
@@ -1489,6 +1610,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
             return false;
             // todo: return true if laying the second bomb won't hurt me
         }
+
+        // todo: false if it would destroy a powerup
 
         var possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
         return possibleExplosion.blocksAffected > 0;
@@ -1686,11 +1809,11 @@ Math.randomGaussian = function(mean, standardDeviation) {
             controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
             controller2 = new Dyna.app.HumanController(player2).withControls(
                 new Dyna.util.KeyboardInput(keyboard, {
-                    "w" : Player.UP,
-                    "s" : Player.DOWN,
-                    "a" : Player.LEFT,
-                    "d" : Player.RIGHT,
-                    "tab" : Player.ENTER
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "left" : Player.LEFT,
+                    "right" : Player.RIGHT,
+                    "enter" : Player.ENTER
                 }));
 
         level.addPlayer(player1);

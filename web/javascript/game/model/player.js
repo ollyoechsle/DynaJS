@@ -16,6 +16,7 @@
     Object.extend(Player, Dyna.events.CustomEvent);
 
     Player.prototype.name = null;
+    Player.prototype.dead = false;
     Player.prototype.x = null;
     Player.prototype.y = null;
     Player.prototype.bombsLaid = 0;
@@ -77,6 +78,7 @@
     };
 
     Player.prototype.die = function() {
+        this.dead = true;
         this.fire(Player.DIED);
     };
 

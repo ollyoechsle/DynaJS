@@ -10,21 +10,16 @@
      * @param {Dyna.ai.Walker} bomber Decides when to take a step
      */
     function ComputerController(player, level, map, destinationChooser, bomber, walker) {
-        this.player = player;
+        this.superclass.constructor.call(this, player);
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
         this.bomber = bomber;
         this.walker = walker;
-        this.initialise();
+        this.initialiseAnimation();
     }
 
-    /**
-     * The player to control
-     * @private
-     * @type {Dyna.model.Player}
-     */
-    ComputerController.prototype.player = null;
+    Object.extend(ComputerController, Dyna.app.BasicController);
 
     /**
      * Reference to the map, so the controller can explore
@@ -65,8 +60,7 @@
      * Ensures that the controller stops operating if the player dies
      * @private
      */
-    ComputerController.prototype.initialise = function() {
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+    ComputerController.prototype.initialiseAnimation = function() {
         this.interval = window.setInterval(this.think.bind(this), ComputerController.SPEED);
     };
 

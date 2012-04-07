@@ -48,11 +48,11 @@
             controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
             controller2 = new Dyna.app.HumanController(player2).withControls(
                 new Dyna.util.KeyboardInput(keyboard, {
-                    "w" : Player.UP,
-                    "s" : Player.DOWN,
-                    "a" : Player.LEFT,
-                    "d" : Player.RIGHT,
-                    "tab" : Player.ENTER
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "left" : Player.LEFT,
+                    "right" : Player.RIGHT,
+                    "enter" : Player.ENTER
                 }));
 
         level.addPlayer(player1);

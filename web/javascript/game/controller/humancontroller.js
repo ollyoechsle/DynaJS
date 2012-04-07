@@ -1,19 +1,14 @@
 (function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
      * @param player The player to control
      */
     function HumanController(player) {
-        this.player = player;
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        this.superclass.constructor.call(this, player);
     }
 
-    /**
-     * The player to control
-     * @type {Dyna.model.Player}
-     */
-    HumanController.prototype.player = null;
+    Object.extend(HumanController, Dyna.app.BasicController);
 
     /**
      * The input method.
@@ -42,15 +37,16 @@
      * @param dy The change in Y
      */
     HumanController.prototype.movePlayerTo = function(dx, dy) {
-       this.player.move(this.player.x + dx, this.player.y + dy);
+        this.player.move(this.player.x + dx, this.player.y + dy);
     };
 
     /**
      * Stops the input method from affecting the player
      */
     HumanController.prototype.stopControlling = function() {
-        this.keyboardInput.unsubscribeAll();
-        this.keyboardInput = null;
+        if (this.keyboardInput) {
+            this.keyboardInput.unsubscribeAll();
+        }
     };
 
     Dyna.app.HumanController = HumanController;
