@@ -2,11 +2,14 @@
 
     /**
      * @constructor
-     * @param {Dyna.app.Game} game The game
+     * @param {jQuery} jContainer The container (".menuContainer")
+     * @param {Dyna.app.Game} game The game model object
+     * @param {Function} menuControlFactory A factory function to return a menu control set up with key mappings
      */
-    function GameOverView(jContainer, game) {
+    function GameOverView(jContainer, game, menuControlFactory) {
         this.jContainer = jQuery(jContainer);
         this.game = game;
+        this.menuControlFactory = menuControlFactory;
         this.initialise();
     }
 
@@ -30,10 +33,22 @@
      * @private
      */
     GameOverView.prototype.showGameOverMessage = function() {
-        if (confirm("Game Over! Play again?")) {
-            // for now, just refresh the window
-            window.location.reload();
-        }
+
+        this.jContainer.removeClass("hidden");
+        this.jContainer.find("h2").text("Game Over");
+
+        this.menuControlFactory()
+            .withItem("Play Again?", this.onPlayAgainPressed.bind(this))
+            .showOn(this.jContainer.find("ul"));
+
+    };
+
+    /**
+     * Handles the user wanting to play again
+     */
+    GameOverView.prototype.onPlayAgainPressed = function() {
+        // for now, just refresh the window
+        window.location.reload();
     };
 
     Dyna.ui.GameOverView = GameOverView;

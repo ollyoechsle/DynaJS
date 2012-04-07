@@ -1064,11 +1064,14 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /**
      * @constructor
-     * @param {Dyna.app.Game} game The game
+     * @param {jQuery} jContainer The container (".menuContainer")
+     * @param {Dyna.app.Game} game The game model object
+     * @param {Function} menuControlFactory A factory function to return a menu control set up with key mappings
      */
-    function GameOverView(jContainer, game) {
+    function GameOverView(jContainer, game, menuControlFactory) {
         this.jContainer = jQuery(jContainer);
         this.game = game;
+        this.menuControlFactory = menuControlFactory;
         this.initialise();
     }
 
@@ -1092,10 +1095,22 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @private
      */
     GameOverView.prototype.showGameOverMessage = function() {
-        if (confirm("Game Over! Play again?")) {
-            // for now, just refresh the window
-            window.location.reload();
-        }
+
+        this.jContainer.removeClass("hidden");
+        this.jContainer.find("h2").text("Game Over");
+
+        this.menuControlFactory()
+            .withItem("Play Again?", this.onPlayAgainPressed.bind(this))
+            .showOn(this.jContainer.find("ul"));
+
+    };
+
+    /**
+     * Handles the user wanting to play again
+     */
+    GameOverView.prototype.onPlayAgainPressed = function() {
+        // for now, just refresh the window
+        window.location.reload();
     };
 
     Dyna.ui.GameOverView = GameOverView;
@@ -1800,7 +1815,70 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Dyna.ai.Walker = Walker;
 
-})(window.Dyna);(function(Dyna) {
+})(window.Dyna);(function(Dyna, jQuery) {
+
+    /**
+     * @constructor
+     * @param {Dyna.util.KeyboardInput} keyboardInput Keyboard input mappings
+     */
+    function MenuControl(keyboardInput) {
+        this.items = [];
+    }
+
+    /**
+     * The menu container
+     * @private
+     * @type {jQuery}
+     */
+    MenuControl.prototype.jMenu = null;
+
+    /**
+     * A list of items to display
+     * @private
+     * @type {Object[]}
+     */
+    MenuControl.prototype.items = null;
+
+    /**
+     * Adds a new item to the menu control
+     * @param {String} text The name of the menu item
+     * @param {Function} callback A function to call when the item is selected
+     * @returns This, for chaining
+     */
+    MenuControl.prototype.withItem = function(text, callback) {
+        this.items.push({
+            text: text,
+            callback: callback
+        });
+        return this;
+    };
+
+    /**
+     * Displays all the items on the menu control
+     */
+    MenuControl.prototype.showOn = function(jMenu) {
+        this.jMenu = jMenu;
+        var i, numItems, item;
+        this.jMenu.empty();
+        for (i = 0,numItems = this.items.length; i < numItems; i++) {
+            item = this.items[i];
+            jMenu.append(MenuControl.createMenuItem(item.text, item.callback));
+        }
+        return this;
+    };
+
+    /**
+     * Creates a menu item
+     * @param text The item text
+     * @param callback A function to call when the item is selected
+     */
+    MenuControl.createMenuItem = function(text, callback) {
+        return jQuery("<li></li>").text(text).click(callback);
+    };
+
+    Dyna.ui.MenuControl = MenuControl;
+
+})(window.Dyna, jQuery);(function(Dyna) {
 
     function init() {
 
@@ -1839,10 +1917,20 @@ Math.randomGaussian = function(mean, standardDeviation) {
             },
             levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
 
+        // controls
+        var
+            menuControlFactory = function() {
+                return new Dyna.ui.MenuControl(new Dyna.util.KeyboardInput(keyboard, {
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "enter" : Player.ENTER
+                }));
+            };
+
         // controller
         var
             game = new Dyna.app.Game(level, levelView),
-            gameOverView = new Dyna.ui.GameOverView(game),
+            gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
             player1 = new Player("Computer 1"),
             player2 = new Player("Player 2"),
             destinationChooser = new Dyna.ai.DestinationChooser(),

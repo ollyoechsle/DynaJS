@@ -37,10 +37,20 @@
             },
             levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
 
+        // controls
+        var
+            menuControlFactory = function() {
+                return new Dyna.ui.MenuControl(new Dyna.util.KeyboardInput(keyboard, {
+                    "up" : Player.UP,
+                    "down" : Player.DOWN,
+                    "enter" : Player.ENTER
+                }));
+            };
+
         // controller
         var
             game = new Dyna.app.Game(level, levelView),
-            gameOverView = new Dyna.ui.GameOverView(game),
+            gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
             player1 = new Player("Computer 1"),
             player2 = new Player("Player 2"),
             destinationChooser = new Dyna.ai.DestinationChooser(),

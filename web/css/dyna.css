@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    background: gray;
+    background: url(../gfx/tiles/grass.png);
     font-family: Arial, sans-serif;
 }
 
