@@ -79,8 +79,12 @@ body {
     background: url(../gfx/players/player2.png) no-repeat;
 }
 
-.player.dead .avatar {
+.player.player1.dead .avatar {
     background: url(../gfx/players/player1.dead.png) no-repeat;
+}
+
+.player.player2.dead .avatar {
+    background: url(../gfx/players/player2.dead.png) no-repeat;
 }
 
 .player.south .avatar {
