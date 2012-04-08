@@ -26,18 +26,23 @@ body {
 
 .tile.wall {
     background: url(../gfx/tiles/wall.png) no-repeat;
+    z-index: 50;
+    height: 35px;
+
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
-    z-index: 50;
 }
 
 .tile.block {
     background: url(../gfx/tiles/crate.png) no-repeat;
-    -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
-    -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
     z-index: 50;
+    height: 35px;
+
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+
 }
 
 .tile.powerup {
@@ -142,6 +147,7 @@ body {
     height: 30px;
     background: url(../gfx/bombs/bomb.png) no-repeat;
     position: absolute;
+    z-index: 50;
 
     -moz-border-radius: 30px;
     -webkit-border-radius: 30px;
@@ -157,14 +163,20 @@ body {
 }
 
 .bomb.exploded1 {
+    z-index: 1;
+    margin-top: 3px;
     background: url(../gfx/bombs/scorch1.png) no-repeat;
 }
 
 .bomb.exploded2 {
+    z-index: 1;
+    margin-top: 3px;
     background: url(../gfx/bombs/scorch2.png) no-repeat;
 }
 
 .bomb.exploded3 {
+    z-index: 1;
+    margin-top: 3px;
     background: url(../gfx/bombs/scorch3.png) no-repeat;
 }
 
