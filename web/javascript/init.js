@@ -52,8 +52,8 @@
         var
             game = new Dyna.app.Game(level, levelView),
             gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
-            player1 = new Player("Computer 1"),
-            player2 = new Player("Player 2"),
+            player1 = new Player("Computer 1", 1),
+            player2 = new Player("Player 2", 2),
             destinationChooser = new Dyna.ai.DestinationChooser(),
             bomber = new Dyna.ai.Bomber(),
             walker = new Dyna.ai.Walker(fbi),

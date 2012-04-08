@@ -1,13 +1,16 @@
 (function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
+     * @param {String} name The name of the player
+     * @param {Number} id The number of the player
      */
-    function Player(name) {
+    function Player(name, id) {
 
         this.superclass.constructor.call(this);
         log("Creating player " + name);
         this.name = name;
+        this.id = id;
         this.bombsLaid = 0;
         this.bombsAvailable = 2;
         this.initialise();
@@ -16,6 +19,7 @@
     Object.extend(Player, Dyna.events.CustomEvent);
 
     Player.prototype.name = null;
+    Player.prototype.id = null;
     Player.prototype.dead = false;
     Player.prototype.x = null;
     Player.prototype.y = null;

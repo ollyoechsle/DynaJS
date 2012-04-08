@@ -19,7 +19,7 @@
         this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
         this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
 
-        this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
+        this.jPlayer = jQuery("<div class='player'></div>").addClass("player" + this.player.id).appendTo(this.jContainer);
 
         jQuery("<div class='nameBadge'></div>")
                 .text(this.player.name)

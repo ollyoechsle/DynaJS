@@ -872,13 +872,16 @@ Math.randomGaussian = function(mean, standardDeviation) {
 })(window.Dyna);(function(Dyna) {
 
     /**
-     * Constructor
+     * @constructor
+     * @param {String} name The name of the player
+     * @param {Number} id The number of the player
      */
-    function Player(name) {
+    function Player(name, id) {
 
         this.superclass.constructor.call(this);
         log("Creating player " + name);
         this.name = name;
+        this.id = id;
         this.bombsLaid = 0;
         this.bombsAvailable = 2;
         this.initialise();
@@ -887,6 +890,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Object.extend(Player, Dyna.events.CustomEvent);
 
     Player.prototype.name = null;
+    Player.prototype.id = null;
     Player.prototype.dead = false;
     Player.prototype.x = null;
     Player.prototype.y = null;
@@ -1304,7 +1308,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
         this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
         this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
 
-        this.jPlayer = jQuery("<div class='player'></div>").appendTo(this.jContainer);
+        this.jPlayer = jQuery("<div class='player'></div>").addClass("player" + this.player.id).appendTo(this.jContainer);
 
         jQuery("<div class='nameBadge'></div>")
                 .text(this.player.name)
@@ -2031,8 +2035,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
         var
             game = new Dyna.app.Game(level, levelView),
             gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
-            player1 = new Player("Computer 1"),
-            player2 = new Player("Player 2"),
+            player1 = new Player("Computer 1", 1),
+            player2 = new Player("Player 2", 2),
             destinationChooser = new Dyna.ai.DestinationChooser(),
             bomber = new Dyna.ai.Bomber(),
             walker = new Dyna.ai.Walker(fbi),

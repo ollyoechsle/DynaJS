@@ -63,7 +63,6 @@ body {
 }
 
 .player .avatar {
-    background: url(../gfx/players/player1.png) no-repeat;
     width: 30px;
     height: 30px;
 
@@ -72,32 +71,40 @@ body {
     transition: all 200ms ease-in-out;
 }
 
+.player.player1 .avatar {
+    background: url(../gfx/players/player1.png) no-repeat;
+}
+
+.player.player2 .avatar {
+    background: url(../gfx/players/player2.png) no-repeat;
+}
+
 .player.dead .avatar {
     background: url(../gfx/players/player1.dead.png) no-repeat;
 }
 
 .player.south .avatar {
-    -moz-transform: rotate(-90deg);
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-}
-
-.player.north .avatar {
-    -moz-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
-    transform: rotate(90deg);
-}
-
-.player.east .avatar {
     -moz-transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
     transform: rotate(180deg);
 }
 
-.player.west .avatar {
+.player.north .avatar {
     -moz-transform: rotate(0deg);
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
+}
+
+.player.east .avatar {
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.player.west .avatar {
+    -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
 }
 
 .player .nameBadge {
