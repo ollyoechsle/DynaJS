@@ -31,6 +31,7 @@
     };
 
     PlayerView.prototype.handlePlayerDied = function() {
+        Dyna.util.Sound.play(Dyna.util.Sound.DIE);
         this.jPlayer.addClass("dead");
     };
 

@@ -39,7 +39,6 @@
 
         this.menuControlFactory()
             .withItem("Play Again?", this.onPlayAgainPressed.bind(this))
-            .withItem("High Scores", this.onPlayAgainPressed.bind(this))
             .showOn(this.jContainer.find("ul"));
 
     };

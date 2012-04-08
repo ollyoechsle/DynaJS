@@ -341,6 +341,44 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Dyna.util.PathFinder = PathFinder;
 
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * @constructor
+     */
+    function Sound() {}
+
+    /**
+     * Plays the given sound
+     * @param {String} file The sound file to play
+     */
+    Sound.play = function(file) {
+        var snd = new window.Audio("snd/" + file);
+        snd.play();
+    };
+
+    /**
+     * Played when the user selects a menu option
+     */
+    Sound.SELECT = "select.wav";
+
+    /**
+     * Played when a bomb detonates
+     */
+    Sound.EXPLOSION = "explosion.wav";
+
+    /**
+     * Played when a player receives a powerup
+     */
+    Sound.POWERUP = "powerup.wav";
+
+    /**
+     * Played when a player dies
+     */
+    Sound.DIE = "die.wav";
+
+    Dyna.util.Sound = Sound;
+
 })(window.Dyna);(function(Dyna, jQuery) {
 
     /**
@@ -1041,8 +1079,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * Plays a boom sound
      */
     ExplosionView.prototype.boom = function() {
-        var snd = new window.Audio("snd/explosion.wav");
-        snd.play();
+        Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     };
 
     /**
@@ -1101,7 +1138,6 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
         this.menuControlFactory()
             .withItem("Play Again?", this.onPlayAgainPressed.bind(this))
-            .withItem("High Scores", this.onPlayAgainPressed.bind(this))
             .showOn(this.jContainer.find("ul"));
 
     };
@@ -1172,8 +1208,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     LevelView.prototype._handlePlayerLevelUp = function(player) {
-        var snd = new Audio("snd/powerup.wav");
-        snd.play();
+        Dyna.util.Sound.play(Dyna.util.Sound.POWERUP);
         this.mapView.updateAll(this.level);
     };
 
@@ -1281,6 +1316,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     PlayerView.prototype.handlePlayerDied = function() {
+        Dyna.util.Sound.play(Dyna.util.Sound.DIE);
         this.jPlayer.addClass("dead");
     };
 
@@ -1859,7 +1895,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /**
      * Moves the selection back or forth
-     * @param dir
+     * @param {Dyna.ui.MenuControl.UP|Dyna.ui.MenuControl.DOWN} dir The menu control direction
      */
     MenuControl.prototype.moveSelection = function(dir) {
         var selected = this.jMenu.find(".selected").removeClass("selected"),
@@ -1876,6 +1912,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * Triggers a click on the selected item
      */
     MenuControl.prototype.chooseSelection = function() {
+        Dyna.util.Sound.play(Dyna.util.Sound.SELECT);
         this.jMenu.find(".selected").click();
     };
 

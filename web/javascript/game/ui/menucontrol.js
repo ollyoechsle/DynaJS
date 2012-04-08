@@ -58,6 +58,7 @@
      * Triggers a click on the selected item
      */
     MenuControl.prototype.chooseSelection = function() {
+        Dyna.util.Sound.play(Dyna.util.Sound.SELECT);
         this.jMenu.find(".selected").click();
     };
 

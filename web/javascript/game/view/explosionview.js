@@ -60,8 +60,7 @@
      * Plays a boom sound
      */
     ExplosionView.prototype.boom = function() {
-        var snd = new window.Audio("snd/explosion.wav");
-        snd.play();
+        Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     };
 
     /**

@@ -54,8 +54,7 @@
     };
 
     LevelView.prototype._handlePlayerLevelUp = function(player) {
-        var snd = new Audio("snd/powerup.wav");
-        snd.play();
+        Dyna.util.Sound.play(Dyna.util.Sound.POWERUP);
         this.mapView.updateAll(this.level);
     };
 
