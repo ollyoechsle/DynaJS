@@ -32,6 +32,13 @@
     Level.prototype.players = [];
 
     /**
+     * A list of all the monsters on the map
+     * @private
+     * @type {Dyna.model.Player[]}
+     */
+    Level.prototype.monsters = [];
+
+    /**
      * Adds a player and listens for events in the player's life
      * @param {Dyna.model.Player} player The player just added
      */
@@ -45,7 +52,20 @@
     };
 
     /**
+     * Adds a monster to the level
+     * @param {Dyna.model.Lifeform} monster The monster just added
+     */
+    Level.prototype.addMonster = function(monster) {
+        if (this.addLifeForm(monster)) {
+            this.monsters.push(monster);
+        } else {
+            log("No room for this monster on the map");
+        }
+    };
+
+    /**
      * Adds another life form to the map
+     * @private
      * @param {Dyna.model.Lifeform} lifeform The life form to be added
      * @return True, if the player could be added to the map; false if not
      */
@@ -97,11 +117,32 @@
     Level.prototype.handlePlayerMove = function(lifeform, x, y) {
         if (this.map.isFree(x, y)) {
             lifeform.moveTo(x, y);
+            this.killAnyPlayersOverlappingMonstersAt(x, y);
             if (this.map.steppedOnLevelUp(x, y) && lifeform.powerUp) {
                 this.fire(Level.LEVEL_UP, lifeform);
                 lifeform.powerUp();
             }
         }
+    };
+
+    Level.prototype.killAnyPlayersOverlappingMonstersAt = function(x, y) {
+        if (this.monstersAt(x, y).length) {
+            this.playersAt(x, y).forEach(function(player) {
+                player.die();
+            })
+        }
+    };
+
+    Level.prototype.playersAt = function(x, y) {
+        return this.players.filter(function atPosition(player) {
+            return player.x == x && player.y == y;
+        });
+    };
+
+    Level.prototype.monstersAt = function(x, y) {
+        return this.monsters.filter(function atPosition(monster) {
+            return monster.x == x && monster.y == y;
+        });
     };
 
     /**
@@ -118,14 +159,9 @@
      * @return {Dyna.model.Player[]}
      */
     Level.prototype.getRemainingPlayers = function() {
-        var playersStillAlive = [];
-        for (var i = 0; i < this.players.length; i++) {
-            var player = this.players[i];
-            if (!player.dead) {
-                playersStillAlive.push(player);
-            }
-        }
-        return playersStillAlive;
+        return this.players.filter(function notDead(player) {
+            return !player.dead;
+        });
     };
 
     /**

@@ -71,7 +71,7 @@
 
         level.addPlayer(player1);
         level.addPlayer(player2);
-        level.addLifeForm(monster1);
+        level.addMonster(monster1);
 
         game.start();
 
