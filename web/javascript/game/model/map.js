@@ -84,7 +84,7 @@
 
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
-        return tile && !tile.solid;
+        return tile && !tile.solid && !Dyna.service.FBI.instance.bombAt(x, y);
     };
 
     Map.prototype.isPowerUp = function(x, y) {

@@ -120,6 +120,11 @@
 
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
+            if (!this.currentPath) {
+                log("Computer cannot get to chosen destination", chosenDestination);
+            }
+        } else {
+            log("Computer has nowhere to go");
         }
 
     };

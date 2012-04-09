@@ -46,6 +46,22 @@
     };
 
     /**
+     * Returns whether there is a bomb at the given location
+     * @param {Number} x The X coordinate
+     * @param {Number} y The Y coordinate
+     */
+    FBI.prototype.bombAt = function(x, y) {
+        var bombId, intelligence;
+        for (bombId in this.intelligence) {
+            intelligence = this.intelligence[bombId];
+            if (intelligence.bomb.at(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    /**
      * Static instance that can be got at any time
      * @type {Dyna.service.FBI}
      */

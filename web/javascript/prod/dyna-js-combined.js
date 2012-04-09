@@ -815,7 +815,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
-        return tile && !tile.solid;
+        return tile && !tile.solid && !Dyna.service.FBI.instance.bombAt(x, y);
     };
 
     Map.prototype.isPowerUp = function(x, y) {
@@ -1544,6 +1544,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
             if (!this.currentPath) {
                 log("Computer cannot get to chosen destination", chosenDestination);
             }
+        } else {
+            log("Computer has nowhere to go");
         }
 
     };
@@ -1608,6 +1610,22 @@ Math.randomGaussian = function(mean, standardDeviation) {
             }
         }
         return 0;
+    };
+
+    /**
+     * Returns whether there is a bomb at the given location
+     * @param {Number} x The X coordinate
+     * @param {Number} y The Y coordinate
+     */
+    FBI.prototype.bombAt = function(x, y) {
+        var bombId, intelligence;
+        for (bombId in this.intelligence) {
+            intelligence = this.intelligence[bombId];
+            if (intelligence.bomb.at(x, y)) {
+                return true;
+            }
+        }
+        return false;
     };
 
     /**
