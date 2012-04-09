@@ -21,13 +21,46 @@ body {
 }
 
 .tile.earth {
-    background: url(../gfx/tiles/grass.png) no-repeat;
+    background: url(../gfx/tiles/sand.png) no-repeat;
 }
 
 .tile.wall {
     background: url(../gfx/tiles/wall.png) no-repeat;
     z-index: 50;
     height: 35px;
+
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tile.wall-vertical {
+    background: url(../gfx/tiles/wall-vertical.png) no-repeat;
+    z-index: 50;
+    width: 10px;
+    height: 35px;
+
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tile.wall-corner {
+    background: url(../gfx/tiles/wall-corner.png) no-repeat;
+    z-index: 50;
+    width: 10px;
+    height: 15px;
+
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tile.wall-horizontal {
+    background: url(../gfx/tiles/wall-horizontal.png) no-repeat;
+    z-index: 50;
+    width: 30px;
+    height: 15px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -148,10 +181,6 @@ body {
     background: url(../gfx/bombs/bomb.png) no-repeat;
     position: absolute;
     z-index: 50;
-
-    -moz-border-radius: 30px;
-    -webkit-border-radius: 30px;
-
 }
 
 .bomb.ticking {
@@ -166,18 +195,27 @@ body {
     z-index: 1;
     margin-top: 3px;
     background: url(../gfx/bombs/scorch1.png) no-repeat;
+
 }
 
 .bomb.exploded2 {
     z-index: 1;
     margin-top: 3px;
-    background: url(../gfx/bombs/scorch2.png) no-repeat;
+    background: url(../gfx/bombs/scorch1.png) no-repeat;
+
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
 }
 
 .bomb.exploded3 {
     z-index: 1;
     margin-top: 3px;
-    background: url(../gfx/bombs/scorch3.png) no-repeat;
+    background: url(../gfx/bombs/scorch1.png) no-repeat;
+
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
 }
 
 @-moz-keyframes ticking
