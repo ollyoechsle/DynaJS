@@ -1,7 +1,14 @@
 (function(Dyna) {
 
-    function DestinationChooser() {
+    function DestinationChooser(weights) {
+        this.weights = weights;
     }
+
+    /**
+     * A map which determines which functions (see end of class) should have what weights.
+     * This is used in destination choosing to create a score for each of the possible destinations.
+     */
+    DestinationChooser.prototype.weights = null;
 
     /**
      * Chooses a destination to travel to from a list of potential destinations
@@ -43,30 +50,13 @@
     DestinationChooser.prototype.getScoreForDestination = function(x, y, level, map, me) {
 
         // todo: allow the decisions made here to be more fuzzy
-        var score = 0, possibleExplosion;
-
         // todo: favour destinations which turn the user away from the explosion as soon as possible
+        // todo: fewer points for being close to monsters
+        var score = 0, key, weight;
 
-        // get points for blowing up walls
-        possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
-        score += possibleExplosion.blocksAffected;
-
-        // points for power ups
-        if (map.isPowerUp(x, y)) {
-            score += 10;
-        }
-
-        // points for being closer to other players
-        score += 2 * (1 - this.getDistanceToClosestPlayer(x, y, map, level.players, me));
-
-        // fewer points for being the current position
-        if (x == me.x && y == me.y) {
-            score -= 2;
-        }
-
-        // fewer points for the square being in imminent danger
-        if (Dyna.service.FBI.instance.estimateDangerAt(x, y)) {
-            score -= 20;
+        for (key in this.weights) {
+            weight = this.weights[key];
+            score += this[key](x, y, level, map, me) * weight;
         }
 
         return score;
@@ -96,6 +86,27 @@
             }
         }
         return minDistance / map.maxDistance;
+    };
+
+    DestinationChooser.prototype.BREAK_WALLS = function(x, y, level, map, me) {
+        var possibleExplosion = Dyna.model.Explosion.create(map, x, y, me.power);
+        return possibleExplosion.blocksAffected;
+    };
+
+    DestinationChooser.prototype.IS_POWER_UP = function(x, y, level, map, me) {
+        return map.isPowerUp(x, y) ? 1 : 0;
+    };
+
+    DestinationChooser.prototype.CLOSE_TO_OTHER_PLAYERS = function(x, y, level, map, me) {
+        return 1 - this.getDistanceToClosestPlayer(x, y, map, level.players, me);
+    };
+
+    DestinationChooser.prototype.SAME_AS_CURRENT_POSITION = function(x, y, level, map, me) {
+        return (x == me.x && y == me.y) ? 1 : 0;
+    };
+
+    DestinationChooser.prototype.IN_DANGER_OF_EXPLOSION = function(x, y, level, map, me) {
+        return Dyna.service.FBI.instance.estimateDangerAt(x, y) ? 1 : 0;
     };
 
     Dyna.ai.DestinationChooser = DestinationChooser;

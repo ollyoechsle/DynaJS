@@ -54,14 +54,25 @@
                 gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
                 player1 = new Player("Computer 1", "redplayer"),
                 player2 = new Player("Player 2", "blueplayer"),
-                monster1 = new Dyna.model.Lifeform("Mushtopus", "mushtopus"),
-                monster2 = new Dyna.model.Lifeform("Mushtopus", "mushtopus"),
-                destinationChooser = new Dyna.ai.DestinationChooser(),
+                monster1 = new Dyna.model.Lifeform("Mushtopus 1", "mushtopus"),
+                monster2 = new Dyna.model.Lifeform("Mushtopus 2", "mushtopus"),
+                playerDestinationChooser = new Dyna.ai.DestinationChooser({
+                    "BREAK_WALLS" : 1,
+                    "IS_POWER_UP" : 10,
+                    "CLOSE_TO_OTHER_PLAYERS" : 2,
+                    "SAME_AS_CURRENT_POSITION": -2,
+                    "IN_DANGER_OF_EXPLOSION": -20
+                }),
+                monsterDestinationChooser = new Dyna.ai.DestinationChooser({
+                    "CLOSE_TO_OTHER_PLAYERS" : 10,
+                    "SAME_AS_CURRENT_POSITION": -2,
+                    "IN_DANGER_OF_EXPLOSION": -20
+                }),
                 bomber = new Dyna.ai.Bomber(),
                 walker = new Dyna.ai.Walker(fbi),
-                aiController1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
-                aiController2 = new Dyna.app.ComputerController(monster1, level, map, destinationChooser, bomber, walker),
-                aiController3 = new Dyna.app.ComputerController(monster2, level, map, destinationChooser, bomber, walker),
+                aiController1 = new Dyna.app.ComputerController(player1, level, map, playerDestinationChooser, bomber, walker),
+                aiController2 = new Dyna.app.ComputerController(monster1, level, map, monsterDestinationChooser, bomber, walker),
+                aiController3 = new Dyna.app.ComputerController(monster2, level, map, monsterDestinationChooser, bomber, walker),
                 humanController1 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "up" : Player.UP,
