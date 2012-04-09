@@ -44,7 +44,7 @@
 
         this.playerPositions.push({x : 0, y : 0});
         this.playerPositions.push({x : this.width - 1, y : this.height - 1});
-        //this.playerPositions.push({x : this.width - 1, y : 0});
+        this.playerPositions.push({x : this.width - 1, y : 0});
         this.playerPositions.push({x : 0, y : this.height - 1});
 
         this.data = data;

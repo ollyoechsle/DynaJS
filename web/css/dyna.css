@@ -141,6 +141,14 @@ body {
     background: none;
 }
 
+.player.lizardcat .avatar {
+    background: url(../gfx/monsters/lizardcat.png) no-repeat;
+}
+
+.player.lizardcat.dead .avatar {
+    background: none;
+}
+
 @-moz-keyframes floating
 {
 0%   {margin-top: -2px;}

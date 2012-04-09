@@ -19,7 +19,7 @@
      */
     DestinationChooser.prototype.chooseDestinationFrom = function(potentialDestinations, level, map, me) {
 
-        var maxScore = 0, destination, chosenDestination;
+        var maxScore = -1000, destination, chosenDestination;
 
         for (var i = 0; i < potentialDestinations.length; i++) {
 
@@ -107,6 +107,10 @@
 
     DestinationChooser.prototype.IN_DANGER_OF_EXPLOSION = function(x, y, level, map, me) {
         return Dyna.service.FBI.instance.estimateDangerAt(x, y) ? 1 : 0;
+    };
+
+    DestinationChooser.prototype.RANDOM = function(x, y, level, map, me) {
+        return Math.random();
     };
 
     Dyna.ai.DestinationChooser = DestinationChooser;
