@@ -130,10 +130,29 @@ body {
 /* Monsters */
 .player.mushtopus .avatar {
     background: url(../gfx/monsters/mushtopus.png) no-repeat;
+    -moz-animation: floating 1.5s;
+    -moz-animation-iteration-count: infinite;
+
+    -webkit-animation: floating 1.5s;
+    -webkit-animation-iteration-count: infinite;
 }
 
 .player.mushtopus.dead .avatar {
     background: none;
+}
+
+@-moz-keyframes floating
+{
+0%   {margin-top: -2px;}
+50%  {margin-top: 2px}
+100%  {margin-top: -2px}
+}
+
+@-webkit-keyframes floating
+{
+0%   {margin-top: -2px;}
+50%  {margin-top: 2px}
+100%  {margin-top: -2px}
 }
 
 .player.south .avatar {
