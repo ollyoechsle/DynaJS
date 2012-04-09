@@ -83,14 +83,19 @@
     ComputerController.prototype.takeNextStep = function() {
         if (this.currentPath) {
             if (this.currentPath.length) {
-                var nextStep = this.currentPath[0];
+                // todo: computer player should not be able to walk over bombs
+                var nextStep = this.currentPath[0], free = this.player.layBomb || this.map.isFree(nextStep.x, nextStep.y);
                 if (this.player.layBomb && this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
                     this.player.layBomb();
                 }
                 // todo: change course if the current path is now too dangerous or a better one has come up
                 if (this.walker.shouldWalkTo(nextStep.x, nextStep.y, this.player)) {
-                    this.player.move(nextStep.x, nextStep.y);
-                    this.currentPath.shift();
+                    if (free) {
+                        this.player.move(nextStep.x, nextStep.y);
+                        this.currentPath.shift();
+                    } else {
+                        this.currentPath = null;
+                    }
                 } else {
                     // freeze!
                     log("Freezing!");
@@ -110,13 +115,13 @@
     ComputerController.prototype.chooseSomewhereToGo = function() {
 
         var pathFinder = new Dyna.util.PathFinder(this.map, this.player.x, this.player.y),
-            potentialDestinations = pathFinder.getAvailableDestinations(),
-            chosenDestination = this.destinationChooser.chooseDestinationFrom(
-                pathFinder.getAvailableDestinations(),
-                this.level,
-                this.map,
-                this.player
-                );
+                potentialDestinations = pathFinder.getAvailableDestinations(),
+                chosenDestination = this.destinationChooser.chooseDestinationFrom(
+                        pathFinder.getAvailableDestinations(),
+                        this.level,
+                        this.map,
+                        this.player
+                        );
 
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
