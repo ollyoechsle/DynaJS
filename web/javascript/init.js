@@ -55,11 +55,13 @@
                 player1 = new Player("Computer 1", "redplayer"),
                 player2 = new Player("Player 2", "blueplayer"),
                 monster1 = new Dyna.model.Lifeform("Mushtopus", "mushtopus"),
+                monster2 = new Dyna.model.Lifeform("Mushtopus", "mushtopus"),
                 destinationChooser = new Dyna.ai.DestinationChooser(),
                 bomber = new Dyna.ai.Bomber(),
                 walker = new Dyna.ai.Walker(fbi),
                 aiController1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
                 aiController2 = new Dyna.app.ComputerController(monster1, level, map, destinationChooser, bomber, walker),
+                aiController3 = new Dyna.app.ComputerController(monster2, level, map, destinationChooser, bomber, walker),
                 humanController1 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "up" : Player.UP,
@@ -72,6 +74,7 @@
         level.addPlayer(player1);
         level.addPlayer(player2);
         level.addMonster(monster1);
+        level.addMonster(monster2);
 
         game.start();
 
