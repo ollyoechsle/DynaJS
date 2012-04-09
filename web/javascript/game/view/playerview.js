@@ -1,7 +1,7 @@
 (function(Dyna, jQuery) {
 
     /**
-     * Constructor
+     * @constructor
      */
     function PlayerView(jContainer, player) {
         log("Creating player view for  " + player.name);
@@ -15,11 +15,10 @@
     PlayerView.prototype.currentDirection = null;
 
     PlayerView.prototype.initialise = function() {
-        this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
-        this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
-        this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
-
-        this.jPlayer = jQuery("<div class='player'></div>").addClass("player" + this.player.id).appendTo(this.jContainer);
+        this.player.on(Dyna.model.Lifeform.MOVED, this.updateAll.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIRECTION_CHANGED, this.changeDirection.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIED, this.handlePlayerDied.bind(this));
+        this.jPlayer = jQuery("<div class='player'></div>").addClass(this.player.skin).appendTo(this.jContainer);
 
         jQuery("<div class='nameBadge'></div>")
                 .text(this.player.name)

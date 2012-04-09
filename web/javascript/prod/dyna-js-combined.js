@@ -57,13 +57,13 @@ Math.randomGaussian = function(mean, standardDeviation) {
     }
 
 };Object.extend = function (SubClass, SuperClass) {
-
     function F() {}
+
     F.prototype = SuperClass.prototype;
     SubClass.prototype = new F();
-
-    // make the original prototype available through a superclass variable
-    SubClass.prototype.superclass = SuperClass.prototype;
+    SubClass.prototype.constructor = SubClass;
+    
+    SubClass.superclass = SuperClass.prototype;
 
 };
 (function(window) {
@@ -385,7 +385,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * Constructor
      */
     function Keyboard() {
-        this.superclass.constructor.call(this);
+        Keyboard.superclass.constructor.call(this);
         this._init();
     }
 
@@ -440,7 +440,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     function KeyboardInput(keyboard, actions) {
 
-        this.superclass.constructor.call(this);
+        KeyboardInput.superclass.constructor.call(this);
 
         if (!actions) {
             throw new Error("Cannot create keyboard input without actions");
@@ -472,22 +472,22 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     function Bomb(x, y, power) {
 
-        this.superclass.constructor.call(this);
+        Bomb.superclass.constructor.call(this);
 
-        this.id = ++id;
+        this.skin = ++id;
         this.x = x;
         this.y = y;
         this.exploded = false;
         this.power = power;
 
-        log("Creating bomb", this.id);
+        log("Creating bomb", this.skin);
         this.startTicking();
 
     }
 
     Object.extend(Bomb, Dyna.events.CustomEvent);
 
-    Bomb.prototype.id = null;
+    Bomb.prototype.skin = null;
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
@@ -597,7 +597,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     function Level(name, map) {
 
-        this.superclass.constructor.call(this);
+        Level.superclass.constructor.call(this);
 
         log("Creating level " + name);
         this.map = map;
@@ -626,14 +626,27 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Dyna.model.Player} player The player just added
      */
     Level.prototype.addPlayer = function(player) {
-        if (this.map.findPositionFor(player)) {
+        if (this.addLifeForm(player)) {
             this.players.push(player);
-            player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
             player.on(Dyna.model.Player.LAID_BOMB, this.handleBombAdded.bind(this));
-            player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
-            this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
+        }
+    };
+
+    /**
+     * Adds another life form to the map
+     * @param {Dyna.model.Lifeform} lifeform The life form to be added
+     * @return True, if the player could be added to the map; false if not
+     */
+    Level.prototype.addLifeForm = function(lifeform) {
+        if (this.map.findPositionFor(lifeform)) {
+            lifeform.on(Dyna.model.Lifeform.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
+            lifeform.on(Dyna.model.Lifeform.DIED, this.handlePlayerDied.bind(this));
+            this.fire(Level.LIFEFORM_ADDED, lifeform);
+            return true;
+        } else {
+            return false;
         }
     };
 
@@ -667,16 +680,16 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /**
      * Manages power ups and allows players to move
-     * @param {Dyna.model.Player} player
+     * @param {Dyna.model.Player} lifeform
      * @param {Number} x The X position where the player wants to move to
      * @param {Number} y The Y position where the player wants to move to
      */
-    Level.prototype.handlePlayerMove = function(player, x, y) {
+    Level.prototype.handlePlayerMove = function(lifeform, x, y) {
         if (this.map.isFree(x, y)) {
-            player.moveTo(x, y);
-            if (this.map.steppedOnLevelUp(x, y)) {
-                this.fire(Level.LEVEL_UP, player);
-                player.powerUp();
+            lifeform.moveTo(x, y);
+            if (this.map.steppedOnLevelUp(x, y) && lifeform.powerUp) {
+                this.fire(Level.LEVEL_UP, lifeform);
+                lifeform.powerUp();
             }
         }
     };
@@ -713,7 +726,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     /** @event */
-    Level.PLAYER_ADDED = "playerAdded";
+    Level.LIFEFORM_ADDED = "lifeformAdded";
 
     /** @event */
     Level.BOMB_ADDED = "bombAdded";
@@ -743,6 +756,11 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Map.prototype.height = null;
     Map.prototype.maxDistance = null;
     Map.prototype.data = null;
+
+    /**
+     * An array of locations on the map where players can be placed
+     * @type {Object[]}
+     */
     Map.prototype.playerPositions = null;
 
     Map.prototype._createMap = function(settings) {
@@ -770,6 +788,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
         this.playerPositions.push({x : 0, y : 0});
         this.playerPositions.push({x : this.width - 1, y : this.height - 1});
+        this.playerPositions.push({x : this.width - 1, y : 0});
+        this.playerPositions.push({x : 0, y : this.height - 1});
 
         this.data = data;
     };
@@ -782,11 +802,11 @@ Math.randomGaussian = function(mean, standardDeviation) {
         if (x < this.width - 1) this.data[x + 1][y] = Map.EARTH;
     };
 
-    Map.prototype.findPositionFor = function(player) {
+    Map.prototype.findPositionFor = function(lifeform) {
         var position = this.playerPositions.shift();
         if (position) {
-            player.x = position.x;
-            player.y = position.y;
+            lifeform.x = position.x;
+            lifeform.y = position.y;
             this.clearSpaceAround(position.x, position.y);
             return true;
         } else {
@@ -873,51 +893,72 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /**
      * @constructor
-     * @param {String} name The name of the player
-     * @param {Number} id The number of the player
+     * @param {String} name The name of the lifeform
+     * @param {Number} skin The skin of the player
      */
-    function Player(name, id) {
-
-        this.superclass.constructor.call(this);
-        log("Creating player " + name);
+    function Lifeform(name, skin) {
+        log("Creating Lifeform " + name);
+        Lifeform.superclass.constructor.call(this);
         this.name = name;
-        this.id = id;
-        this.bombsLaid = 0;
-        this.bombsAvailable = 2;
+        this.skin = skin;
         this.initialise();
     }
 
-    Object.extend(Player, Dyna.events.CustomEvent);
+    Object.extend(Lifeform, Dyna.events.CustomEvent);
 
-    Player.prototype.name = null;
-    Player.prototype.id = null;
-    Player.prototype.dead = false;
-    Player.prototype.x = null;
-    Player.prototype.y = null;
-    Player.prototype.bombsLaid = 0;
-    Player.prototype.power = 1;
-    Player.prototype.bombsAvailable = 0;
+    /**
+     * The name of the life form
+     * @type {String}
+     */
+    Lifeform.prototype.name = null;
 
-    Player.prototype.initialise = function() {
+    /**
+     * The skin of the player, eg "player1", or "mushtopus"
+     * @type {String}
+     */
+    Lifeform.prototype.skin = null;
+
+    /**
+     * Whether this life form is dead or not
+     * @type {Boolean}
+     */
+    Lifeform.prototype.dead = false;
+
+    /**
+     * The current X position of the life form on the map
+     * @type {Number}
+     */
+    Lifeform.prototype.x = null;
+
+    /**
+     * The current Y position of the life form on the map
+     * @type {Number}
+     */
+    Lifeform.prototype.y = null;
+
+    /**
+     * Listens for explosions that could kill it
+     */
+    Lifeform.prototype.initialise = function() {
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.possiblyGetBlownUp.bind(this));
     };
 
-    Player.prototype.possiblyGetBlownUp = function(explosion) {
+    /**
+     * Makes the life form die if something explodes near to it.
+     * @param {Dyna.model.Explosion} explosion The explosion from the detonated bomb
+     */
+    Lifeform.prototype.possiblyGetBlownUp = function(explosion) {
         if (explosion.affects(this.x, this.y)) {
             this.die();
         }
     };
 
-    Player.prototype.powerUp = function() {
-        this.power++;
-    };
-
     /**
-     * Makes the player request a move to a new position.
+     * Makes the Lifeform request a move to a new position.
      * @param {Number} nx The new position in X
      * @param {Number} ny The new position in Y
      */
-    Player.prototype.move = function(nx, ny) {
+    Lifeform.prototype.move = function(nx, ny) {
 
         var direction;
 
@@ -931,14 +972,66 @@ Math.randomGaussian = function(mean, standardDeviation) {
             direction = 'north';
         }
 
-        this.fire(Player.WANTS_TO_MOVE, this, nx, ny);
-        this.fire(Player.DIRECTION_CHANGED, direction);
+        this.fire(Lifeform.WANTS_TO_MOVE, this, nx, ny);
+        this.fire(Lifeform.DIRECTION_CHANGED, direction);
     };
 
-    Player.prototype.moveTo = function(x, y) {
+    Lifeform.prototype.moveTo = function(x, y) {
         this.x = x;
         this.y = y;
-        this.fire(Player.MOVED);
+        this.fire(Lifeform.MOVED);
+    };
+
+    Lifeform.prototype.die = function() {
+        this.dead = true;
+        this.fire(Lifeform.DIED);
+    };
+
+    /**
+     * Returns the rough distance to a point
+     * @param {Number} x
+     * @param {Number} y
+     */
+    Lifeform.prototype.distanceTo = function(x, y) {
+        return Math.abs(this.x - x) + Math.abs(this.y - y);
+    };
+
+    /** @event */
+    Lifeform.MOVED = "moved";
+
+    /** @event */
+    Lifeform.DIRECTION_CHANGED = "directionChanged";
+
+    /** @event */
+    Lifeform.WANTS_TO_MOVE = "wantsToMove";
+
+    /** @event */
+    Lifeform.DIED = "died";
+
+    Dyna.model.Lifeform = Lifeform;
+
+})(window.Dyna);(function(Dyna) {
+
+    /**
+     * @constructor
+     * @param {String} name The name of the player
+     * @param {Number} skin The skin of the player, eg "player1"
+     */
+    function Player(name, skin) {
+        log("Creating player " + name);
+        Player.superclass.constructor.call(this, name, skin);
+        this.bombsLaid = 0;
+        this.bombsAvailable = 2;
+    }
+
+    Object.extend(Player, Dyna.model.Lifeform);
+
+    Player.prototype.bombsLaid = 0;
+    Player.prototype.power = 1;
+    Player.prototype.bombsAvailable = 0;
+
+    Player.prototype.powerUp = function() {
+        this.power++;
     };
 
     Player.prototype.layBomb = function() {
@@ -952,22 +1045,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     };
 
-    Player.prototype.die = function() {
-        this.dead = true;
-        this.fire(Player.DIED);
-    };
-
     Player.prototype._handleMyBombExploded = function() {
         this.bombsLaid--;
-    };
-
-    /**
-     * Returns the rough distance to a point
-     * @param {Number} x
-     * @param {Number} y
-     */
-    Player.prototype.distanceTo = function(x, y) {
-        return Math.abs(this.x - x) + Math.abs(this.y - y);
     };
 
     Player.UP = "up";
@@ -977,19 +1056,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Player.ENTER = "enter";
 
     /** @event */
-    Player.MOVED = "moved";
-
-    /** @event */
-    Player.DIRECTION_CHANGED = "directionChanged";
-
-    /** @event */
-    Player.WANTS_TO_MOVE = "wantsToMove";
-
-    /** @event */
     Player.LAID_BOMB = "laidBomb";
-
-    /** @event */
-    Player.DIED = "died";
 
     Dyna.model.Player = Player;
 
@@ -1161,14 +1228,14 @@ Math.randomGaussian = function(mean, standardDeviation) {
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory) {
+    function LevelView(jContainer, level, mapViewFactory, lifeformViewFactory, bombViewFactory, explosionViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
         this.level = level;
 
-        this.playerViewFactory = playerViewFactory;
-        this.playerViews = [];
+        this.lifeformViewFactory = lifeformViewFactory;
+        this.lifeformViews = [];
 
         this.mapViewFactory = mapViewFactory;
         this.mapView = null;
@@ -1182,8 +1249,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
     LevelView.prototype.jContainer = null;
     LevelView.prototype.level = null;
 
-    LevelView.prototype.playerViewFactory = null;
-    LevelView.prototype.playerViews = null;
+    LevelView.prototype.lifeformViewFactory = null;
+    LevelView.prototype.lifeformViews = null;
 
     LevelView.prototype.mapViewFactory = null;
     LevelView.prototype.mapView = null;
@@ -1194,7 +1261,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
-        this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
+        this.level.on(Dyna.model.Level.LIFEFORM_ADDED, this._createViewForLifeForm.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
 
@@ -1216,15 +1283,15 @@ Math.randomGaussian = function(mean, standardDeviation) {
         this.mapView.updateAll(this.level);
     };
 
-    LevelView.prototype._createPlayerView = function(player) {
-        this.playerViews.push(this.playerViewFactory(player))
+    LevelView.prototype._createViewForLifeForm = function(lifeform) {
+        this.lifeformViews.push(this.lifeformViewFactory(lifeform))
     };
 
     LevelView.prototype.updateAll = function() {
 
         this.mapView.updateAll(this.level);
-        for (var i = 0; i < this.playerViews.length; i++) {
-            this.playerViews[i].updateAll();
+        for (var i = 0; i < this.lifeformViews.length; i++) {
+            this.lifeformViews[i].updateAll();
         }
 
     };
@@ -1330,7 +1397,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
     /**
-     * Constructor
+     * @constructor
      */
     function PlayerView(jContainer, player) {
         log("Creating player view for  " + player.name);
@@ -1344,11 +1411,10 @@ Math.randomGaussian = function(mean, standardDeviation) {
     PlayerView.prototype.currentDirection = null;
 
     PlayerView.prototype.initialise = function() {
-        this.player.on(Dyna.model.Player.MOVED, this.updateAll.bind(this));
-        this.player.on(Dyna.model.Player.DIRECTION_CHANGED, this.changeDirection.bind(this));
-        this.player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
-
-        this.jPlayer = jQuery("<div class='player'></div>").addClass("player" + this.player.id).appendTo(this.jContainer);
+        this.player.on(Dyna.model.Lifeform.MOVED, this.updateAll.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIRECTION_CHANGED, this.changeDirection.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIED, this.handlePlayerDied.bind(this));
+        this.jPlayer = jQuery("<div class='player'></div>").addClass(this.player.skin).appendTo(this.jContainer);
 
         jQuery("<div class='nameBadge'></div>")
                 .text(this.player.name)
@@ -1387,7 +1453,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     /**
      * @constructor
-     * @param {Dyna.model.Player} player The player to control
+     * @param {Dyna.model.Lifeform} player The life form to control
      */
     function BasicController(player) {
         this.player = player;
@@ -1406,7 +1472,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * Stops control when the player dies or when the game ends
      */
     BasicController.prototype.initialiseEvents = function() {
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIED, this.stopControlling.bind(this));
         Dyna.app.GlobalEvents.on("gameover", this.stopControlling.bind(this));
     };
 
@@ -1431,7 +1497,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Dyna.ai.Walker} bomber Decides when to take a step
      */
     function ComputerController(player, level, map, destinationChooser, bomber, walker) {
-        this.superclass.constructor.call(this, player);
+        ComputerController.superclass.constructor.call(this, player);
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;
@@ -1583,8 +1649,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
     FBI.prototype.intelligence = null;
 
     FBI.prototype.handleBombThreat = function(bomb) {
-        log("FBI has had a report of a bomb threat at " + bomb.id);
-        this.intelligence[bomb.id] = {
+        log("FBI has had a report of a bomb threat at " + bomb.skin);
+        this.intelligence[bomb.skin] = {
             bomb: bomb,
             explosion: Dyna.model.Explosion.create(this.level.map, bomb.x, bomb.y, bomb.power)
         };
@@ -1592,8 +1658,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     FBI.prototype.handleBombExplosion = function(x, y, power, bomb) {
-        log("FBI standing down at", bomb.id);
-        delete this.intelligence[bomb.id];
+        log("FBI standing down at", bomb.skin);
+        delete this.intelligence[bomb.skin];
     };
 
     /**
@@ -1677,7 +1743,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     Game.prototype.gameOver = function(remainingPlayers) {
-        log("Game Over", remainingPlayers)
+        log("Game Over", remainingPlayers);
         Dyna.app.GlobalEvents.fire("gameover");
     };
 
@@ -1700,7 +1766,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param player The player to control
      */
     function HumanController(player) {
-        this.superclass.constructor.call(this, player);
+        HumanController.superclass.constructor.call(this, player);
     }
 
     Object.extend(HumanController, Dyna.app.BasicController);
@@ -2054,65 +2120,67 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
         // eventing
         var
-            keyboard = new Dyna.util.Keyboard();
+                keyboard = new Dyna.util.Keyboard();
 
         // model
         var
-            map = new Dyna.model.Map(11, 11, {
-                blocks: 0.75,
-                powerups: 0.10
-            }),
-            level = new Dyna.model.Level("Level 1", map),
-            fbi = new Dyna.service.FBI(level);
+                map = new Dyna.model.Map(11, 11, {
+                    blocks: 0.75,
+                    powerups: 0.10
+                }),
+                level = new Dyna.model.Level("Level 1", map),
+                fbi = new Dyna.service.FBI(level);
 
         // view
         var
-            mapViewFactory = function(map) {
-                return new Dyna.ui.MapView("#level .map", map)
-            },
-            playerViewFactory = function(player) {
-                return new Dyna.ui.PlayerView("#level .players", player)
-            },
-            bombViewFactory = function(bomb) {
-                return new Dyna.ui.BombView("#level .players", bomb)
-            },
-            explosionViewFactory = function(explosion) {
-                return new Dyna.ui.ExplosionView("#level .explosions", explosion, map)
-            },
-            levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory);
+                mapViewFactory = function(map) {
+                    return new Dyna.ui.MapView("#level .map", map)
+                },
+                lifeformViewFactory = function(lifeform) {
+                    return new Dyna.ui.PlayerView("#level .players", lifeform)
+                },
+                bombViewFactory = function(bomb) {
+                    return new Dyna.ui.BombView("#level .players", bomb)
+                },
+                explosionViewFactory = function(explosion) {
+                    return new Dyna.ui.ExplosionView("#level .explosions", explosion, map)
+                },
+                levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, lifeformViewFactory, bombViewFactory, explosionViewFactory);
 
         // controls
         var
-            MenuControl = Dyna.ui.MenuControl,
-            menuControlFactory = function() {
-                return new MenuControl(new Dyna.util.KeyboardInput(keyboard, {
-                    "up" : MenuControl.UP,
-                    "down" : MenuControl.DOWN,
-                    "enter" : MenuControl.SELECT
-                }));
-            };
+                MenuControl = Dyna.ui.MenuControl,
+                menuControlFactory = function() {
+                    return new MenuControl(new Dyna.util.KeyboardInput(keyboard, {
+                        "up" : MenuControl.UP,
+                        "down" : MenuControl.DOWN,
+                        "enter" : MenuControl.SELECT
+                    }));
+                };
 
         // controller
         var
-            game = new Dyna.app.Game(level, levelView),
-            gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
-            player1 = new Player("Computer 1", 1),
-            player2 = new Player("Player 2", 2),
-            destinationChooser = new Dyna.ai.DestinationChooser(),
-            bomber = new Dyna.ai.Bomber(),
-            walker = new Dyna.ai.Walker(fbi),
-            controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
-            controller2 = new Dyna.app.HumanController(player2).withControls(
-                new Dyna.util.KeyboardInput(keyboard, {
-                    "up" : Player.UP,
-                    "down" : Player.DOWN,
-                    "left" : Player.LEFT,
-                    "right" : Player.RIGHT,
-                    "enter" : Player.ENTER
-                }));
+                game = new Dyna.app.Game(level, levelView),
+                gameoverView = new Dyna.ui.GameOverView(".menuContainer", game, menuControlFactory),
+                player1 = new Player("Computer 1", "redplayer"),
+                player2 = new Player("Player 2", "blueplayer"),
+                monster1 = new Dyna.model.Lifeform("Mushtopus", "mushtopus"),
+                destinationChooser = new Dyna.ai.DestinationChooser(),
+                bomber = new Dyna.ai.Bomber(),
+                walker = new Dyna.ai.Walker(fbi),
+                controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
+                controller2 = new Dyna.app.HumanController(player2).withControls(
+                        new Dyna.util.KeyboardInput(keyboard, {
+                            "up" : Player.UP,
+                            "down" : Player.DOWN,
+                            "left" : Player.LEFT,
+                            "right" : Player.RIGHT,
+                            "enter" : Player.ENTER
+                        }));
 
         level.addPlayer(player1);
         level.addPlayer(player2);
+        level.addLifeForm(monster1);
 
         game.start();
 

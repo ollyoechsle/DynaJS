@@ -4,7 +4,7 @@
      * Constructor
      */
     function Keyboard() {
-        this.superclass.constructor.call(this);
+        Keyboard.superclass.constructor.call(this);
         this._init();
     }
 

@@ -3,14 +3,14 @@
     /**
      * Constructor
      */
-    function LevelView(jContainer, level, mapViewFactory, playerViewFactory, bombViewFactory, explosionViewFactory) {
+    function LevelView(jContainer, level, mapViewFactory, lifeformViewFactory, bombViewFactory, explosionViewFactory) {
         log("Creating LevelView for  " + level.name);
 
         this.jContainer = jQuery(jContainer);
         this.level = level;
 
-        this.playerViewFactory = playerViewFactory;
-        this.playerViews = [];
+        this.lifeformViewFactory = lifeformViewFactory;
+        this.lifeformViews = [];
 
         this.mapViewFactory = mapViewFactory;
         this.mapView = null;
@@ -24,8 +24,8 @@
     LevelView.prototype.jContainer = null;
     LevelView.prototype.level = null;
 
-    LevelView.prototype.playerViewFactory = null;
-    LevelView.prototype.playerViews = null;
+    LevelView.prototype.lifeformViewFactory = null;
+    LevelView.prototype.lifeformViews = null;
 
     LevelView.prototype.mapViewFactory = null;
     LevelView.prototype.mapView = null;
@@ -36,7 +36,7 @@
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
         LevelView.tileSize = 30;
-        this.level.on(Dyna.model.Level.PLAYER_ADDED, this._createPlayerView.bind(this));
+        this.level.on(Dyna.model.Level.LIFEFORM_ADDED, this._createViewForLifeForm.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
 
@@ -58,15 +58,15 @@
         this.mapView.updateAll(this.level);
     };
 
-    LevelView.prototype._createPlayerView = function(player) {
-        this.playerViews.push(this.playerViewFactory(player))
+    LevelView.prototype._createViewForLifeForm = function(lifeform) {
+        this.lifeformViews.push(this.lifeformViewFactory(lifeform))
     };
 
     LevelView.prototype.updateAll = function() {
 
         this.mapView.updateAll(this.level);
-        for (var i = 0; i < this.playerViews.length; i++) {
-            this.playerViews[i].updateAll();
+        for (var i = 0; i < this.lifeformViews.length; i++) {
+            this.lifeformViews[i].updateAll();
         }
 
     };

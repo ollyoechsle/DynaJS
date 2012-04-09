@@ -5,7 +5,7 @@
      * @param player The player to control
      */
     function HumanController(player) {
-        this.superclass.constructor.call(this, player);
+        HumanController.superclass.constructor.call(this, player);
     }
 
     Object.extend(HumanController, Dyna.app.BasicController);

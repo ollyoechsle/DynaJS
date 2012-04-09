@@ -12,6 +12,11 @@
     Map.prototype.height = null;
     Map.prototype.maxDistance = null;
     Map.prototype.data = null;
+
+    /**
+     * An array of locations on the map where players can be placed
+     * @type {Object[]}
+     */
     Map.prototype.playerPositions = null;
 
     Map.prototype._createMap = function(settings) {
@@ -39,6 +44,8 @@
 
         this.playerPositions.push({x : 0, y : 0});
         this.playerPositions.push({x : this.width - 1, y : this.height - 1});
+        this.playerPositions.push({x : this.width - 1, y : 0});
+        this.playerPositions.push({x : 0, y : this.height - 1});
 
         this.data = data;
     };
@@ -51,11 +58,11 @@
         if (x < this.width - 1) this.data[x + 1][y] = Map.EARTH;
     };
 
-    Map.prototype.findPositionFor = function(player) {
+    Map.prototype.findPositionFor = function(lifeform) {
         var position = this.playerPositions.shift();
         if (position) {
-            player.x = position.x;
-            player.y = position.y;
+            lifeform.x = position.x;
+            lifeform.y = position.y;
             this.clearSpaceAround(position.x, position.y);
             return true;
         } else {

@@ -7,7 +7,7 @@
      */
     function Bomb(x, y, power) {
 
-        this.superclass.constructor.call(this);
+        Bomb.superclass.constructor.call(this);
 
         this.id = ++id;
         this.x = x;

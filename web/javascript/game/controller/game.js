@@ -39,7 +39,7 @@
     };
 
     Game.prototype.gameOver = function(remainingPlayers) {
-        log("Game Over", remainingPlayers)
+        log("Game Over", remainingPlayers);
         Dyna.app.GlobalEvents.fire("gameover");
     };
 

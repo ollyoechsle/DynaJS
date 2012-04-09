@@ -34,6 +34,7 @@
             <fileset dir="web/javascript/input" includes="*.js"/>
             <fileset dir="web/javascript/game" includes="*.js"/>
             <fileset dir="web/javascript/game/model" includes="*.js"/>
+            <fileset dir="web/javascript/game/model/life" includes="*.js"/>
             <fileset dir="web/javascript/game/view" includes="*.js"/>
             <fileset dir="web/javascript/game/controller" includes="*.js"/>
             <fileset dir="web/javascript/game/ai" includes="*.js"/>

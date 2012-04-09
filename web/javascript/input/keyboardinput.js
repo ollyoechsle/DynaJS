@@ -5,7 +5,7 @@
      */
     function KeyboardInput(keyboard, actions) {
 
-        this.superclass.constructor.call(this);
+        KeyboardInput.superclass.constructor.call(this);
 
         if (!actions) {
             throw new Error("Cannot create keyboard input without actions");

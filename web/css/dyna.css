@@ -109,20 +109,31 @@ body {
     transition: all 200ms ease-in-out;
 }
 
-.player.player1 .avatar {
-    background: url(../gfx/players/player1.png) no-repeat;
+/* Red Player */
+.player.redplayer .avatar {
+    background: url(../gfx/players/redplayer.png) no-repeat;
 }
 
-.player.player2 .avatar {
-    background: url(../gfx/players/player2.png) no-repeat;
+.player.redplayer.dead .avatar {
+    background: url(../gfx/players/redplayer.dead.png) no-repeat;
 }
 
-.player.player1.dead .avatar {
-    background: url(../gfx/players/player1.dead.png) no-repeat;
+/* Blue Player */
+.player.blueplayer .avatar {
+    background: url(../gfx/players/blueplayer.png) no-repeat;
 }
 
-.player.player2.dead .avatar {
-    background: url(../gfx/players/player2.dead.png) no-repeat;
+.player.blueplayer.dead .avatar {
+    background: url(../gfx/players/blueplayer.dead.png) no-repeat;
+}
+
+/* Monsters */
+.player.mushtopus .avatar {
+    background: url(../gfx/monsters/mushtopus.png) no-repeat;
+}
+
+.player.mushtopus.dead .avatar {
+    background: none;
 }
 
 .player.south .avatar {

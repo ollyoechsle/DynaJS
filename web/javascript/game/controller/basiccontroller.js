@@ -2,7 +2,7 @@
 
     /**
      * @constructor
-     * @param {Dyna.model.Player} player The player to control
+     * @param {Dyna.model.Lifeform} player The life form to control
      */
     function BasicController(player) {
         this.player = player;
@@ -21,7 +21,7 @@
      * Stops control when the player dies or when the game ends
      */
     BasicController.prototype.initialiseEvents = function() {
-        this.player.on(Dyna.model.Player.DIED, this.stopControlling.bind(this));
+        this.player.on(Dyna.model.Lifeform.DIED, this.stopControlling.bind(this));
         Dyna.app.GlobalEvents.on("gameover", this.stopControlling.bind(this));
     };
 

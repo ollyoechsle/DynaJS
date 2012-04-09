@@ -10,7 +10,7 @@
      * @param {Dyna.ai.Walker} bomber Decides when to take a step
      */
     function ComputerController(player, level, map, destinationChooser, bomber, walker) {
-        this.superclass.constructor.call(this, player);
+        ComputerController.superclass.constructor.call(this, player);
         this.level = level;
         this.map = map;
         this.destinationChooser = destinationChooser;

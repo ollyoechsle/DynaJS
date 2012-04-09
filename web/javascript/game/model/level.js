@@ -7,7 +7,7 @@
      */
     function Level(name, map) {
 
-        this.superclass.constructor.call(this);
+        Level.superclass.constructor.call(this);
 
         log("Creating level " + name);
         this.map = map;
@@ -36,14 +36,27 @@
      * @param {Dyna.model.Player} player The player just added
      */
     Level.prototype.addPlayer = function(player) {
-        if (this.map.findPositionFor(player)) {
+        if (this.addLifeForm(player)) {
             this.players.push(player);
-            player.on(Dyna.model.Player.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
             player.on(Dyna.model.Player.LAID_BOMB, this.handleBombAdded.bind(this));
-            player.on(Dyna.model.Player.DIED, this.handlePlayerDied.bind(this));
-            this.fire(Level.PLAYER_ADDED, player);
         } else {
             log("No room for this player on the map");
+        }
+    };
+
+    /**
+     * Adds another life form to the map
+     * @param {Dyna.model.Lifeform} lifeform The life form to be added
+     * @return True, if the player could be added to the map; false if not
+     */
+    Level.prototype.addLifeForm = function(lifeform) {
+        if (this.map.findPositionFor(lifeform)) {
+            lifeform.on(Dyna.model.Lifeform.WANTS_TO_MOVE, this.handlePlayerMove.bind(this));
+            lifeform.on(Dyna.model.Lifeform.DIED, this.handlePlayerDied.bind(this));
+            this.fire(Level.LIFEFORM_ADDED, lifeform);
+            return true;
+        } else {
+            return false;
         }
     };
 
@@ -77,16 +90,16 @@
 
     /**
      * Manages power ups and allows players to move
-     * @param {Dyna.model.Player} player
+     * @param {Dyna.model.Player} lifeform
      * @param {Number} x The X position where the player wants to move to
      * @param {Number} y The Y position where the player wants to move to
      */
-    Level.prototype.handlePlayerMove = function(player, x, y) {
+    Level.prototype.handlePlayerMove = function(lifeform, x, y) {
         if (this.map.isFree(x, y)) {
-            player.moveTo(x, y);
-            if (this.map.steppedOnLevelUp(x, y)) {
-                this.fire(Level.LEVEL_UP, player);
-                player.powerUp();
+            lifeform.moveTo(x, y);
+            if (this.map.steppedOnLevelUp(x, y) && lifeform.powerUp) {
+                this.fire(Level.LEVEL_UP, lifeform);
+                lifeform.powerUp();
             }
         }
     };
@@ -123,7 +136,7 @@
     };
 
     /** @event */
-    Level.PLAYER_ADDED = "playerAdded";
+    Level.LIFEFORM_ADDED = "lifeformAdded";
 
     /** @event */
     Level.BOMB_ADDED = "bombAdded";
