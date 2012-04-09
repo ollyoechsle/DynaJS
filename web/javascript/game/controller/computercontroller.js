@@ -84,7 +84,7 @@
         if (this.currentPath) {
             if (this.currentPath.length) {
                 var nextStep = this.currentPath[0];
-                if (this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
+                if (this.player.layBomb && this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
                     this.player.layBomb();
                 }
                 // todo: change course if the current path is now too dangerous or a better one has come up
@@ -96,7 +96,7 @@
                     log("Freezing!");
                 }
             } else {
-                if (this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
+                if (this.player.layBomb && this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;

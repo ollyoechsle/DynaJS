@@ -58,8 +58,9 @@
                 destinationChooser = new Dyna.ai.DestinationChooser(),
                 bomber = new Dyna.ai.Bomber(),
                 walker = new Dyna.ai.Walker(fbi),
-                controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
-                controller2 = new Dyna.app.HumanController(player2).withControls(
+                aiController1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
+                aiController2 = new Dyna.app.ComputerController(monster1, level, map, destinationChooser, bomber, walker),
+                humanController1 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "up" : Player.UP,
                             "down" : Player.DOWN,

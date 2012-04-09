@@ -68,21 +68,7 @@
      * @param {Number} ny The new position in Y
      */
     Lifeform.prototype.move = function(nx, ny) {
-
-        var direction;
-
-        if (this.x > nx) {
-            direction = 'west';
-        } else if (this.x < nx) {
-            direction = 'east';
-        } else if (this.y < ny) {
-            direction = 'south';
-        } else {
-            direction = 'north';
-        }
-
-        this.fire(Lifeform.WANTS_TO_MOVE, this, nx, ny);
-        this.fire(Lifeform.DIRECTION_CHANGED, direction);
+        this.fire(Lifeform.WANTS_TO_MOVE, this, nx, ny);        
     };
 
     Lifeform.prototype.moveTo = function(x, y) {

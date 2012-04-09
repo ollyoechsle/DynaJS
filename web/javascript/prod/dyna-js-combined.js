@@ -474,20 +474,20 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
         Bomb.superclass.constructor.call(this);
 
-        this.skin = ++id;
+        this.id = ++id;
         this.x = x;
         this.y = y;
         this.exploded = false;
         this.power = power;
 
-        log("Creating bomb", this.skin);
+        log("Creating bomb", this.id);
         this.startTicking();
 
     }
 
     Object.extend(Bomb, Dyna.events.CustomEvent);
 
-    Bomb.prototype.skin = null;
+    Bomb.prototype.id = null;
     Bomb.prototype.x = null;
     Bomb.prototype.y = null;
     Bomb.prototype.exploded = false;
@@ -959,21 +959,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Number} ny The new position in Y
      */
     Lifeform.prototype.move = function(nx, ny) {
-
-        var direction;
-
-        if (this.x > nx) {
-            direction = 'west';
-        } else if (this.x < nx) {
-            direction = 'east';
-        } else if (this.y < ny) {
-            direction = 'south';
-        } else {
-            direction = 'north';
-        }
-
-        this.fire(Lifeform.WANTS_TO_MOVE, this, nx, ny);
-        this.fire(Lifeform.DIRECTION_CHANGED, direction);
+        this.fire(Lifeform.WANTS_TO_MOVE, this, nx, ny);        
     };
 
     Lifeform.prototype.moveTo = function(x, y) {
@@ -1043,6 +1029,21 @@ Math.randomGaussian = function(mean, standardDeviation) {
             this.fire(Player.LAID_BOMB, bomb);
         }
 
+    };
+
+    Player.prototype.move = function(nx, ny) {
+        var direction;
+        if (this.x > nx) {
+            direction = 'west';
+        } else if (this.x < nx) {
+            direction = 'east';
+        } else if (this.y < ny) {
+            direction = 'south';
+        } else {
+            direction = 'north';
+        }
+        Player.superclass.move.apply(this, arguments);
+        this.fire(Dyna.model.Lifeform.DIRECTION_CHANGED, direction);
     };
 
     Player.prototype._handleMyBombExploded = function() {
@@ -1571,7 +1572,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
         if (this.currentPath) {
             if (this.currentPath.length) {
                 var nextStep = this.currentPath[0];
-                if (this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
+                if (this.player.layBomb && this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
                     this.player.layBomb();
                 }
                 // todo: change course if the current path is now too dangerous or a better one has come up
@@ -1583,7 +1584,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
                     log("Freezing!");
                 }
             } else {
-                if (this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
+                if (this.player.layBomb && this.bomber.layingBombHereIsAGoodIdea(this.player.x, this.player.y, this.map, this.player)) {
                     this.player.layBomb();
                 }
                 this.currentPath = null;
@@ -1649,8 +1650,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
     FBI.prototype.intelligence = null;
 
     FBI.prototype.handleBombThreat = function(bomb) {
-        log("FBI has had a report of a bomb threat at " + bomb.skin);
-        this.intelligence[bomb.skin] = {
+        log("FBI has had a report of a bomb threat at " + bomb.id);
+        this.intelligence[bomb.id] = {
             bomb: bomb,
             explosion: Dyna.model.Explosion.create(this.level.map, bomb.x, bomb.y, bomb.power)
         };
@@ -1658,8 +1659,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     FBI.prototype.handleBombExplosion = function(x, y, power, bomb) {
-        log("FBI standing down at", bomb.skin);
-        delete this.intelligence[bomb.skin];
+        log("FBI standing down at", bomb.id);
+        delete this.intelligence[bomb.id];
     };
 
     /**
@@ -2168,8 +2169,9 @@ Math.randomGaussian = function(mean, standardDeviation) {
                 destinationChooser = new Dyna.ai.DestinationChooser(),
                 bomber = new Dyna.ai.Bomber(),
                 walker = new Dyna.ai.Walker(fbi),
-                controller1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
-                controller2 = new Dyna.app.HumanController(player2).withControls(
+                aiController1 = new Dyna.app.ComputerController(player1, level, map, destinationChooser, bomber, walker),
+                aiController2 = new Dyna.app.ComputerController(monster1, level, map, destinationChooser, bomber, walker),
+                humanController1 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "up" : Player.UP,
                             "down" : Player.DOWN,

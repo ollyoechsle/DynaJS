@@ -33,6 +33,21 @@
 
     };
 
+    Player.prototype.move = function(nx, ny) {
+        var direction;
+        if (this.x > nx) {
+            direction = 'west';
+        } else if (this.x < nx) {
+            direction = 'east';
+        } else if (this.y < ny) {
+            direction = 'south';
+        } else {
+            direction = 'north';
+        }
+        Player.superclass.move.apply(this, arguments);
+        this.fire(Dyna.model.Lifeform.DIRECTION_CHANGED, direction);
+    };
+
     Player.prototype._handleMyBombExploded = function() {
         this.bombsLaid--;
     };
