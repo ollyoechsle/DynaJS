@@ -401,7 +401,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     var decodePath = function(str) {
         return {
             x: letters.indexOf(str[0]),
-            y: +str[1]
+            y: +str.substring(1)
         }
     };
 
@@ -905,7 +905,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
         this.playerPositions.push({x : 0, y : 0});
         this.playerPositions.push({x : this.width - 1, y : this.height - 1});
-        this.playerPositions.push({x : this.width - 1, y : 0});
+        //this.playerPositions.push({x : this.width - 1, y : 0});
         this.playerPositions.push({x : 0, y : this.height - 1});
 
         this.data = data;
@@ -922,8 +922,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Map.prototype.findPositionFor = function(lifeform) {
         var position = this.playerPositions.shift();
         if (position) {
-            lifeform.x = position.x;
-            lifeform.y = position.y;
+            lifeform.moveTo(position.x, position.y);
             this.clearSpaceAround(position.x, position.y);
             return true;
         } else {
@@ -1080,6 +1079,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     Lifeform.prototype.moveTo = function(x, y) {
+        log(this.name + " moved to " + x + ", " + y);
         this.x = x;
         this.y = y;
         this.fire(Lifeform.MOVED);
@@ -1726,7 +1726,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
             if (!this.currentPath) {
-                log(this.player.name + " cannot get to chosen destination", chosenDestination);
+                log(this.player.name + " cannot get to chosen destination", this.player.x, this.player.y, chosenDestination);
             }
         } else {
             log(this.player.name + " has nowhere to go");
@@ -2303,15 +2303,15 @@ Math.randomGaussian = function(mean, standardDeviation) {
                     "IN_DANGER_OF_EXPLOSION": -20
                 }),
                 monsterDestinationChooser = new Dyna.ai.DestinationChooser({
-                    "CLOSE_TO_OTHER_PLAYERS" : 10,
+                    "CLOSE_TO_OTHER_PLAYERS" : 2,
                     "SAME_AS_CURRENT_POSITION": -2,
                     "IN_DANGER_OF_EXPLOSION": -20
                 }),
                 bomber = new Dyna.ai.Bomber(),
                 walker = new Dyna.ai.Walker(fbi),
-                aiController1 = new Dyna.app.ComputerController(player1, level, map, playerDestinationChooser, bomber, walker),
+                //aiController1 = new Dyna.app.ComputerController(player1, level, map, playerDestinationChooser, bomber, walker),
                 aiController2 = new Dyna.app.ComputerController(monster1, level, map, monsterDestinationChooser, bomber, walker),
-                aiController3 = new Dyna.app.ComputerController(monster2, level, map, monsterDestinationChooser, bomber, walker),
+                //aiController3 = new Dyna.app.ComputerController(monster2, level, map, monsterDestinationChooser, bomber, walker),
                 humanController1 = new Dyna.app.HumanController(player2).withControls(
                         new Dyna.util.KeyboardInput(keyboard, {
                             "up" : Player.UP,
@@ -2324,7 +2324,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
         level.addPlayer(player1);
         level.addPlayer(player2);
         level.addMonster(monster1);
-        level.addMonster(monster2);
+//        level.addMonster(monster2);
 
         game.start();
 

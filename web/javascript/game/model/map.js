@@ -44,7 +44,7 @@
 
         this.playerPositions.push({x : 0, y : 0});
         this.playerPositions.push({x : this.width - 1, y : this.height - 1});
-        this.playerPositions.push({x : this.width - 1, y : 0});
+        //this.playerPositions.push({x : this.width - 1, y : 0});
         this.playerPositions.push({x : 0, y : this.height - 1});
 
         this.data = data;
@@ -61,8 +61,7 @@
     Map.prototype.findPositionFor = function(lifeform) {
         var position = this.playerPositions.shift();
         if (position) {
-            lifeform.x = position.x;
-            lifeform.y = position.y;
+            lifeform.moveTo(position.x, position.y);
             this.clearSpaceAround(position.x, position.y);
             return true;
         } else {

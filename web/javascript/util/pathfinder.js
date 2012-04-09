@@ -155,7 +155,7 @@
     var decodePath = function(str) {
         return {
             x: letters.indexOf(str[0]),
-            y: +str[1]
+            y: +str.substring(1)
         }
     };
 

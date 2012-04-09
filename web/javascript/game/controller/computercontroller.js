@@ -121,7 +121,7 @@
         if (chosenDestination) {
             this.currentPath = pathFinder.getPathTo(chosenDestination.x, chosenDestination.y);
             if (!this.currentPath) {
-                log(this.player.name + " cannot get to chosen destination", chosenDestination);
+                log(this.player.name + " cannot get to chosen destination", this.player.x, this.player.y, chosenDestination);
             }
         } else {
             log(this.player.name + " has nowhere to go");
