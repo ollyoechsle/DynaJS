@@ -460,7 +460,47 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Dyna.util.Sound = Sound;
 
-})(window.Dyna);(function(Dyna, jQuery) {
+})(window.Dyna);(function(Dyna) {
+
+    function Timer() {
+        Dyna.app.GlobalEvents.on("gameover", this.clearAll.bind(this));
+        this.timeouts = [];
+        this.intervals = [];
+    }
+
+    Timer.prototype.timeouts = null;
+    Timer.prototype.intervals = null;
+
+    Timer.prototype.setTimeout = function(fn, delay) {
+        var timeoutId = window.setTimeout(fn, delay);
+        this.timeouts.push(timeoutId);
+        return timeoutId;
+    };
+
+    Timer.prototype.setInterval = function(fn, delay) {
+        var intervalId = window.setInterval(fn, delay);
+        this.intervals.push(intervalId);
+        return id;
+    };
+
+    Timer.prototype.clearAll = function() {
+        this.timeouts.forEach(function(timeout) {
+            window.clearTimeout(timeout);
+        });
+        this.intervals.forEach(function(interval) {
+            window.clearInterval(interval);
+        });
+        this.timeouts = [];
+        this.intervals = [];
+    };
+
+    Timer.initialise = function() {
+        Dyna.util.Timer = new Timer();
+    };
+
+    Dyna.util.Timer = Timer;
+
+})(Dyna);(function(Dyna, jQuery) {
 
     /**
      * Constructor
@@ -549,7 +589,10 @@ Math.randomGaussian = function(mean, standardDeviation) {
     var id = 0;
 
     /**
-     * Constructor
+     * @constructor
+     * @param {Number} x the X coordinate of the bomb
+     * @param {Number} y the Y coordinate of the bomb
+     * @param {Number} power The number of squares in each direction that the bomb explosion can affect
      */
     function Bomb(x, y, power) {
 
@@ -568,22 +611,47 @@ Math.randomGaussian = function(mean, standardDeviation) {
 
     Object.extend(Bomb, Dyna.events.CustomEvent);
 
+    /**
+     * A unique identifier for each bomb
+     * @type {Number}
+     */
     Bomb.prototype.id = null;
+
+    /**
+     * The X coordinate of the bomb on the map
+     * @type {Number}
+     */
     Bomb.prototype.x = null;
+
+    /**
+     * The Y coordinate of the bomb on the map
+     * @type {Number}
+     */
     Bomb.prototype.y = null;
+
+    /**
+     * Whether the bomb has exploded yet
+     * @type {Boolean}
+     */
     Bomb.prototype.exploded = false;
+
+    /**
+     * The number of squares that the bomb explosion can affect
+     * @type {Number}
+     */
     Bomb.prototype.power = 0;
+
     Bomb.prototype.timer = null;
 
     Bomb.prototype.startTicking = function() {
-        this.timer = window.setTimeout(this.explode.bind(this), 3 * 1000);
+        this.timer = Dyna.util.Timer.setTimeout(this.explode.bind(this), 3 * 1000);
         Dyna.app.GlobalEvents.on(Dyna.model.Level.EXPLOSION, this.triggerChainReaction.bind(this))
     };
 
     Bomb.prototype.triggerChainReaction = function(explosion) {
         if (explosion.affects(this.x, this.y) && this.timer) {
             window.clearTimeout(this.timer);
-            window.setTimeout(this.explode.bind(this), 300);
+            Dyna.util.Timer.setTimeout(this.explode.bind(this), 300);
             this.explode();
         }
     };
@@ -1217,7 +1285,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     function ExplosionView(jContainer, explosion, map) {
         this.jContainer = jQuery(jContainer);
         this.createExplosion(explosion, map);
-        window.setTimeout(this.destroy.bind(this), ExplosionView.DURATION);
+        Dyna.util.Timer.setTimeout(this.destroy.bind(this), ExplosionView.DURATION);
     }
 
     /**
@@ -1688,6 +1756,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     ComputerController.prototype.takeNextStep = function() {
         if (this.currentPath) {
             if (this.currentPath.length) {
+                // todo: computer player should not be able to walk over bombs
                 var nextStep = this.currentPath[0], free = this.player.layBomb || this.map.isFree(nextStep.x, nextStep.y);
                 if (this.player.layBomb && this.bomber.canLayBombOnRoute(this.currentPath, this.player.x, this.player.y, this.player)) {
                     this.player.layBomb();
@@ -2254,6 +2323,8 @@ Math.randomGaussian = function(mean, standardDeviation) {
         Dyna.app.GlobalEvents = new Dyna.events.CustomEvent();
 
         var Player = Dyna.model.Player;
+
+        Dyna.util.Timer.initialise();
 
         // eventing
         var

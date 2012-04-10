@@ -8,6 +8,8 @@
 
         var Player = Dyna.model.Player;
 
+        Dyna.util.Timer.initialise();
+
         // eventing
         var
                 keyboard = new Dyna.util.Keyboard();

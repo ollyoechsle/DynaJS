@@ -9,7 +9,7 @@
     function ExplosionView(jContainer, explosion, map) {
         this.jContainer = jQuery(jContainer);
         this.createExplosion(explosion, map);
-        window.setTimeout(this.destroy.bind(this), ExplosionView.DURATION);
+        Dyna.util.Timer.setTimeout(this.destroy.bind(this), ExplosionView.DURATION);
     }
 
     /**
