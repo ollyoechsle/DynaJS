@@ -45,11 +45,11 @@
     };
 
     CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
-        var i, tile, fireballs = [];
+        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize;
         for (i = 0; i < explosion.tilesAffected.length; i++) {
             tile = explosion.tilesAffected[i];
             if (map.inBounds(tile.x, tile.y)) {
-                fireballs.push(new FireBall(tile.x * Dyna.ui.LevelView.tileSize, tile.y * Dyna.ui.LevelView.tileSize));
+                fireballs.push(new FireBall((tile.x + 0.5) * tileSize, (tile.y + 0.5) * tileSize));
             }
         }
         return fireballs;
@@ -97,9 +97,9 @@
     }
 
     FireBall.prototype.render = function(ctx, time) {
-        var size = Dyna.ui.LevelView.tileSize;
+        var size = Dyna.ui.LevelView.tileSize * time, halfSize = size / 2;
         ctx.fillStyle = "#FF0000";
-        ctx.fillRect(this.x, this.y, time * size, time * size);
+        ctx.fillRect(this.x - halfSize, this.y - halfSize, size, size);
     };
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
