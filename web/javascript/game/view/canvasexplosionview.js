@@ -8,7 +8,10 @@
      */
     function CanvasExplosionView(jContainer, explosion, map) {
         this.initialise(jQuery(jContainer));
-        this.createExplosion(explosion, map);
+        this.explosion = explosion;
+        this.map = map;
+        this.start = +new Date();
+        this.interval = window.setInterval(this.render.bind(this), 1000 / 24);
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION);
     }
 
@@ -18,6 +21,11 @@
      * @type {jQuery}
      */
     CanvasExplosionView.prototype.jContainer = null;
+
+    /**
+     * @type {Number} The start time
+     */
+    CanvasExplosionView.prototype.start = null;
 
     /**
      * The canvas context
@@ -36,14 +44,14 @@
 
     /**
      * Adds fireballs to create an explosion
-     * @param {Dyna.model.Explosion} explosion The explosion model object
-     * @param {Dyna.model.Map} map The map
      */
-    CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
-        for (var i = 0; i < explosion.tilesAffected.length; i++) {
-            var tile = explosion.tilesAffected[i];
+    CanvasExplosionView.prototype.render = function() {
+        this.clear();
+        var ctx = this.ctx, i, tile, explosion = this.explosion, map = this.map, elapsed = this.getTimeElapsed() / CanvasExplosionView.DURATION;
+        for (i = 0; i < explosion.tilesAffected.length; i++) {
+            tile = explosion.tilesAffected[i];
             if (map.inBounds(tile.x, tile.y)) {
-                this.drawFireBall(tile.x, tile.y);
+                this.drawFireBall(ctx, tile.x, tile.y, Dyna.ui.LevelView.tileSize * elapsed);
             }
         }
         this.boom();
@@ -53,15 +61,19 @@
      * Static method to create a fireball
      * @param {Number} x The X coordinate
      * @param {Number} y The Y coordinate
+     * @param {Number} size The size of the fireball
      */
-    CanvasExplosionView.prototype.drawFireBall = function(x, y) {
-        var ctx = this.ctx;
+    CanvasExplosionView.prototype.drawFireBall = function(ctx, x, y, size) {
         ctx.fillStyle = "#FF0000";
-        ctx.fillRect(x * Dyna.ui.LevelView.tileSize, y * Dyna.ui.LevelView.tileSize, Dyna.ui.LevelView.tileSize, Dyna.ui.LevelView.tileSize);
+        ctx.fillRect(x * Dyna.ui.LevelView.tileSize, y * Dyna.ui.LevelView.tileSize, size, size);
     };
 
     CanvasExplosionView.prototype.clear = function() {
         this.ctx.clearRect(0, 0, this.jContainer.width(), this.jContainer.height());
+    };
+
+    CanvasExplosionView.prototype.getTimeElapsed = function() {
+        return +new Date() - this.start;
     };
 
     /**
@@ -75,6 +87,7 @@
      * Removes the explosion element from the page
      */
     CanvasExplosionView.prototype.destroy = function() {
+        window.clearInterval(this.interval);
         this.jContainer.remove();
     };
 
