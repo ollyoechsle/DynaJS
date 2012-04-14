@@ -271,6 +271,14 @@ body {
 }
 
 /* Explosions */
+
+.explosion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 200;
+}
+
 .fireBall {
     position: absolute;
     width: 30px;

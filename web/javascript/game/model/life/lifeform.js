@@ -72,7 +72,6 @@
     };
 
     Lifeform.prototype.moveTo = function(x, y) {
-        log(this.name + " moved to " + x + ", " + y);
         this.x = x;
         this.y = y;
         this.fire(Lifeform.MOVED);

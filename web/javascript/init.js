@@ -35,7 +35,7 @@
                     return new Dyna.ui.BombView("#level .players", bomb)
                 },
                 explosionViewFactory = function(explosion) {
-                    return new Dyna.ui.ExplosionView("#level .explosions", explosion, map)
+                    return new Dyna.ui.CanvasExplosionView("#level", explosion, map)
                 },
                 levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, lifeformViewFactory, bombViewFactory, explosionViewFactory);
 
