@@ -1282,12 +1282,12 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @param {Dyna.model.Map} map The map
      */
     function CanvasExplosionView(jContainer, explosion, map) {
-        this.initialise(jQuery(jContainer));
-        this.explosion = explosion;
-        this.map = map;
+        this.ctx = this.createContext(jQuery(jContainer));
+        this.fireballs = this.createExplosion(explosion, map);
         this.start = +new Date();
         this.interval = window.setInterval(this.render.bind(this), 1000 / 24);
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION);
+        Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
 
     /**
@@ -1309,12 +1309,25 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     CanvasExplosionView.prototype.ctx = null;
 
-    CanvasExplosionView.prototype.initialise = function(jLevel) {
+    CanvasExplosionView.prototype.fireballs = null;
+
+    CanvasExplosionView.prototype.createContext = function(jLevel) {
         this.jContainer = jQuery("<canvas class='explosion'></canvas>")
                 .attr("width", jLevel.width())
                 .attr("height", jLevel.width())
                 .appendTo(jLevel);
-        this.ctx = this.jContainer[0].getContext("2d");
+        return this.jContainer[0].getContext("2d");
+    };
+
+    CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
+        var i, tile, fireballs = [];
+        for (i = 0; i < explosion.tilesAffected.length; i++) {
+            tile = explosion.tilesAffected[i];
+            if (map.inBounds(tile.x, tile.y)) {
+                fireballs.push(new FireBall(tile.x * Dyna.ui.LevelView.tileSize, tile.y * Dyna.ui.LevelView.tileSize));
+            }
+        }
+        return fireballs;
     };
 
     /**
@@ -1322,25 +1335,13 @@ Math.randomGaussian = function(mean, standardDeviation) {
      */
     CanvasExplosionView.prototype.render = function() {
         this.clear();
-        var ctx = this.ctx, i, tile, explosion = this.explosion, map = this.map, elapsed = this.getTimeElapsed() / CanvasExplosionView.DURATION;
-        for (i = 0; i < explosion.tilesAffected.length; i++) {
-            tile = explosion.tilesAffected[i];
-            if (map.inBounds(tile.x, tile.y)) {
-                this.drawFireBall(ctx, tile.x, tile.y, Dyna.ui.LevelView.tileSize * elapsed);
-            }
+        var ctx = this.ctx, i,
+                fireballs = this.fireballs,
+                numFireballs = fireballs.length,
+                elapsed = this.getTimeElapsed();
+        for (i = 0; i < numFireballs; i++) {
+            fireballs[i].render(ctx, elapsed);
         }
-        this.boom();
-    };
-
-    /**
-     * Static method to create a fireball
-     * @param {Number} x The X coordinate
-     * @param {Number} y The Y coordinate
-     * @param {Number} size The size of the fireball
-     */
-    CanvasExplosionView.prototype.drawFireBall = function(ctx, x, y, size) {
-        ctx.fillStyle = "#FF0000";
-        ctx.fillRect(x * Dyna.ui.LevelView.tileSize, y * Dyna.ui.LevelView.tileSize, size, size);
     };
 
     CanvasExplosionView.prototype.clear = function() {
@@ -1348,14 +1349,7 @@ Math.randomGaussian = function(mean, standardDeviation) {
     };
 
     CanvasExplosionView.prototype.getTimeElapsed = function() {
-        return +new Date() - this.start;
-    };
-
-    /**
-     * Plays a boom sound
-     */
-    CanvasExplosionView.prototype.boom = function() {
-        Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
+        return (+new Date() - this.start) / CanvasExplosionView.DURATION;
     };
 
     /**
@@ -1371,6 +1365,17 @@ Math.randomGaussian = function(mean, standardDeviation) {
      * @type {Number}
      */
     CanvasExplosionView.DURATION = 800;
+
+    function FireBall(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    FireBall.prototype.render = function(ctx, time) {
+        var size = Dyna.ui.LevelView.tileSize;
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(this.x, this.y, time * size, time * size);
+    };
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
 
