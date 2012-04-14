@@ -45,11 +45,15 @@
     };
 
     CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
-        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize;
+        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy;
         for (i = 0; i < explosion.tilesAffected.length; i++) {
             tile = explosion.tilesAffected[i];
             if (map.inBounds(tile.x, tile.y)) {
-                fireballs.push(new FireBall((tile.x + 0.5) * tileSize, (tile.y + 0.5) * tileSize));
+                cx = (tile.x + 0.5) * tileSize;
+                cy = (tile.y + 0.5) * tileSize;
+                fireballs.push(new FireBall(cx, cy, tileSize, "#E83C0A")); // red
+                fireballs.push(new FireBall(cx, cy, tileSize / 2, "#F7EC64")); // yellow
+                fireballs.push(new FireBall(cx, cy, tileSize / 4, "#FDF895")); // white yellow
             }
         }
         return fireballs;
@@ -91,15 +95,20 @@
      */
     CanvasExplosionView.DURATION = 800;
 
-    function FireBall(x, y) {
+    function FireBall(x, y, size, color) {
         this.x = x;
         this.y = y;
+        this.size = size;
+        this.color = color;
     }
 
     FireBall.prototype.render = function(ctx, time) {
-        var size = Dyna.ui.LevelView.tileSize * time, halfSize = size / 2;
-        ctx.fillStyle = "#FF0000";
-        ctx.fillRect(this.x - halfSize, this.y - halfSize, size, size);
+        var size = this.size * time, radius = size / 2;
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = time;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI*2, true);
+        ctx.fill();
     };
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
