@@ -731,69 +731,107 @@ if (!Array.prototype.forEach) {
 
 })(window.Dyna);(function(Dyna) {
 
-   function Explosion() {
-      this.tilesAffected = [];
-      this.blocksAffected = 0;
-   }
+    function Explosion(x, y) {
+        this.tilesAffected = [];
+        this.blocksAffected = 0;
+        this.x = x;
+        this.y = y;
+    }
 
-   Explosion.prototype.tilesAffected = null;
-   Explosion.prototype.blocksAffected = 0;
+    Explosion.prototype.tilesAffected = null;
+    Explosion.prototype.blocksAffected = 0;
 
-   Explosion.prototype.addAffectedTile = function(x, y) {
-      this.tilesAffected.push({
-         x: x,
-         y: y
-      });
-   };
+    /**
+     * @type {Number} The X position of the center of the explosion
+     */
+    Explosion.prototype.x = 0;
 
-   Explosion.prototype.affects = function(x, y) {
-      for (var i = 0; i < this.tilesAffected.length; i++) {
-         var tile = this.tilesAffected[i];
-         if (tile.x == x && tile.y == y) {
-            return true;
-         }
-      }
-      return false;
-   };
+    /**
+     * @type {Number} The Y position of the center of the explosion
+     */
+    Explosion.prototype.y = 0;
 
-   Explosion.create = function(map, x, y, power) {
-      var explosion = new Explosion(), direction;
+    /**
+     * @type {Number} The distance to the east that the explosion covers
+     */
+    Explosion.prototype.eastExtent = 0;
 
-      for (var key in directions) {
-         direction = directions[key];
+    /**
+     * @type {Number} The distance to the west that the explosion covers
+     */
+    Explosion.prototype.westExtent = 0;
 
-         for (var i = 0; i <= power; i++) {
-            var mx = x + (direction.x * i),
-               my = y + (direction.y * i),
-               tile = map.tileAt(mx, my);
+    /**
+     * @type {Number} The distance to the north that the explosion covers
+     */
+    Explosion.prototype.northExtent = 0;
 
-            if (tile && tile != Dyna.model.Map.WALL) {
-               explosion.addAffectedTile(mx, my);
-               if (tile == Dyna.model.Map.BLOCK) {
-                  explosion.blocksAffected++;
-               }
-               if (tile.solid) {
-                  break;
-               }
-            } else {
-               break;
+    /**
+     * @type {Number} The distance to the south that the explosion covers
+     */
+    Explosion.prototype.southExtent = 0;
+
+    Explosion.prototype.addAffectedTile = function(x, y) {
+        this.tilesAffected.push({
+            x: x,
+            y: y
+        });
+    };
+
+    Explosion.prototype.affects = function(x, y) {
+        for (var i = 0; i < this.tilesAffected.length; i++) {
+            var tile = this.tilesAffected[i];
+            if (tile.x == x && tile.y == y) {
+                return true;
             }
-         }
+        }
+        return false;
+    };
 
-      }
+    Explosion.create = function(map, x, y, power) {
+        var explosion = new Explosion(x, y), direction, key, extent, mx, my, tile;
 
-      return explosion;
+        explosion.addAffectedTile(x, y);
 
-   };
+        for (key in directions) {
+            direction = directions[key];
 
-   var directions = {
-      "east": {x: -1, y: 0},
-      "west": {x: +1, y: 0},
-      "north": {x: 0, y: -1},
-      "south": {x: 0, y: +1}
-   };
+            for (extent = 1; extent <= power; extent++) {
 
-   Dyna.model.Explosion = Explosion;
+                mx = x + (direction.x * extent);
+                my = y + (direction.y * extent);
+                tile = map.tileAt(mx, my);
+
+                if (tile && tile != Dyna.model.Map.WALL) {
+                    explosion.addAffectedTile(mx, my);
+                    if (tile == Dyna.model.Map.BLOCK) {
+                        explosion.blocksAffected++;
+                    }
+                    if (tile.solid) {
+                        break;
+                    }
+                } else {
+                    extent--;
+                    break;
+                }
+            }
+
+            explosion[key + "Extent"] = Math.min(extent, power);
+
+        }
+
+        return explosion;
+
+    };
+
+    var directions = {
+        "east": {x: +1, y: 0},
+        "west": {x: -1, y: 0},
+        "north": {x: 0, y: -1},
+        "south": {x: 0, y: +1}
+    };
+
+    Dyna.model.Explosion = Explosion;
 
 })(window.Dyna);(function(Dyna) {
 
@@ -1344,7 +1382,7 @@ if (!Array.prototype.forEach) {
         this.fireballs = this.createExplosion(explosion, map);
         this.start = +new Date();
         this.render();
-        Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION);
+        Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION * 5);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
 
@@ -1354,11 +1392,6 @@ if (!Array.prototype.forEach) {
      * @type {jQuery}
      */
     CanvasExplosionView.prototype.jContainer = null;
-
-    /**
-     * @type {Number} The start time
-     */
-    CanvasExplosionView.prototype.start = null;
 
     /**
      * The canvas context
@@ -1380,16 +1413,15 @@ if (!Array.prototype.forEach) {
     };
 
     CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
-        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy;
+        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
         for (i = 0; i < explosion.tilesAffected.length; i++) {
             tile = explosion.tilesAffected[i];
-            if (map.inBounds(tile.x, tile.y)) {
-                cx = (tile.x + 0.5) * tileSize;
-                cy = (tile.y + 0.5) * tileSize;
-                fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(), "#FDF895")); // white yellow
-                fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(), "#E83C0A")); // red
-                fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(), "#F7EC64")); // yellow
-            }
+            delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
+            cx = (tile.x + 0.5) * tileSize;
+            cy = (tile.y + 0.5) * tileSize;
+            fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start + delay)); // white hot
+            fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(0.3), "#F7EC64", start + delay)); // yellow
+            fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(0.5), "#E83C0A", start + delay)); // red
         }
         return fireballs;
     };
@@ -1403,9 +1435,9 @@ if (!Array.prototype.forEach) {
         var ctx = this.ctx, i,
                 fireballs = this.fireballs,
                 numFireballs = fireballs.length,
-                elapsed = this.getTimeElapsed();
+                now = +new Date();
         for (i = 0; i < numFireballs; i++) {
-            fireballs[i].render(ctx, elapsed);
+            fireballs[i].render(ctx, now);
         }
     };
 
@@ -1413,9 +1445,6 @@ if (!Array.prototype.forEach) {
         this.ctx.clearRect(0, 0, this.jContainer.width(), this.jContainer.height());
     };
 
-    CanvasExplosionView.prototype.getTimeElapsed = function() {
-        return (+new Date() - this.start) / CanvasExplosionView.DURATION;
-    };
 
     /**
      * Removes the explosion element from the page
@@ -1431,18 +1460,28 @@ if (!Array.prototype.forEach) {
      */
     CanvasExplosionView.DURATION = 800;
 
-    function FireBall(x, y, size, fn, color) {
+    function FireBall(x, y, size, fn, color, start) {
         this.x = x;
         this.y = y;
         this.fn = fn;
         this.size = size;
         this.color = color;
+        this.start = start;
     }
 
-    FireBall.prototype.render = function(ctx, time) {
-        var size = this.size * this.fn(time), radius = size / 2;
+    /**
+     * @type {Number} The start time
+     */
+    FireBall.prototype.start = null;
+
+    FireBall.prototype.getTimeElapsed = function(now) {
+        return (now - this.start) / CanvasExplosionView.DURATION;
+    };
+
+    FireBall.prototype.render = function(ctx, now) {
+        var size = this.size * this.fn(this.getTimeElapsed(now)), radius = size / 2;
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = time;
+        ctx.globalAlpha = this.time;
         ctx.beginPath();
         ctx.arc(this.x, this.y, radius, 0, Math.PI * 2, true);
         ctx.fill();
