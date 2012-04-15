@@ -115,7 +115,7 @@ if (!Array.prototype.forEach) {
 
     /**
      * Returns a Gaussian Random Number around a normal distribution defined by the mean
-     * and standard deviation parameters
+     * and standard deviation parameters.
      *
      * Uses the algorithm used in Java's random class, which in turn comes from
      * Donald Knuth's implementation of the Box–Muller transform.
@@ -181,7 +181,31 @@ if (!Array.prototype.forEach) {
     SubClass.superclass = SuperClass.prototype;
 
 };
-(function(window) {
+(function() {
+    var lastTime = 0, vendors = ['ms', 'moz', 'webkit', 'o'];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame =
+                window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() {
+                callback(currTime + timeToCall);
+            },
+                    timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());(function(window) {
 
     var log = Function.prototype.bind.call(console.log, console);
 
@@ -1319,7 +1343,7 @@ if (!Array.prototype.forEach) {
         this.ctx = this.createContext(jQuery(jContainer));
         this.fireballs = this.createExplosion(explosion, map);
         this.start = +new Date();
-        this.interval = window.setInterval(this.render.bind(this), 1000 / 24);
+        this.render();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
@@ -1345,6 +1369,8 @@ if (!Array.prototype.forEach) {
 
     CanvasExplosionView.prototype.fireballs = null;
 
+    CanvasExplosionView.prototype.animationId = null;
+
     CanvasExplosionView.prototype.createContext = function(jLevel) {
         this.jContainer = jQuery("<canvas class='explosion'></canvas>")
                 .attr("width", jLevel.width())
@@ -1360,9 +1386,9 @@ if (!Array.prototype.forEach) {
             if (map.inBounds(tile.x, tile.y)) {
                 cx = (tile.x + 0.5) * tileSize;
                 cy = (tile.y + 0.5) * tileSize;
-                fireballs.push(new FireBall(cx, cy, tileSize, "#E83C0A")); // red
-                fireballs.push(new FireBall(cx, cy, tileSize / 2, "#F7EC64")); // yellow
-                fireballs.push(new FireBall(cx, cy, tileSize / 4, "#FDF895")); // white yellow
+                fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(), "#FDF895")); // white yellow
+                fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(), "#E83C0A")); // red
+                fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(), "#F7EC64")); // yellow
             }
         }
         return fireballs;
@@ -1372,6 +1398,7 @@ if (!Array.prototype.forEach) {
      * Adds fireballs to create an explosion
      */
     CanvasExplosionView.prototype.render = function() {
+        this.animationId = requestAnimationFrame(this.render.bind(this));
         this.clear();
         var ctx = this.ctx, i,
                 fireballs = this.fireballs,
@@ -1394,7 +1421,7 @@ if (!Array.prototype.forEach) {
      * Removes the explosion element from the page
      */
     CanvasExplosionView.prototype.destroy = function() {
-        window.clearInterval(this.interval);
+        cancelAnimationFrame(this.animationId);
         this.jContainer.remove();
     };
 
@@ -1404,19 +1431,20 @@ if (!Array.prototype.forEach) {
      */
     CanvasExplosionView.DURATION = 800;
 
-    function FireBall(x, y, size, color) {
+    function FireBall(x, y, size, fn, color) {
         this.x = x;
         this.y = y;
+        this.fn = fn;
         this.size = size;
         this.color = color;
     }
 
     FireBall.prototype.render = function(ctx, time) {
-        var size = this.size * time, radius = size / 2;
+        var size = this.size * this.fn(time), radius = size / 2;
         ctx.fillStyle = this.color;
         ctx.globalAlpha = time;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, radius, 0, Math.PI*2, true);
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2, true);
         ctx.fill();
     };
 

@@ -10,7 +10,7 @@
         this.ctx = this.createContext(jQuery(jContainer));
         this.fireballs = this.createExplosion(explosion, map);
         this.start = +new Date();
-        this.interval = window.setInterval(this.render.bind(this), 1000 / 24);
+        this.render();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
@@ -36,6 +36,8 @@
 
     CanvasExplosionView.prototype.fireballs = null;
 
+    CanvasExplosionView.prototype.animationId = null;
+
     CanvasExplosionView.prototype.createContext = function(jLevel) {
         this.jContainer = jQuery("<canvas class='explosion'></canvas>")
                 .attr("width", jLevel.width())
@@ -51,9 +53,9 @@
             if (map.inBounds(tile.x, tile.y)) {
                 cx = (tile.x + 0.5) * tileSize;
                 cy = (tile.y + 0.5) * tileSize;
-                fireballs.push(new FireBall(cx, cy, tileSize, "#E83C0A")); // red
-                fireballs.push(new FireBall(cx, cy, tileSize / 2, "#F7EC64")); // yellow
-                fireballs.push(new FireBall(cx, cy, tileSize / 4, "#FDF895")); // white yellow
+                fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(), "#FDF895")); // white yellow
+                fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(), "#E83C0A")); // red
+                fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(), "#F7EC64")); // yellow
             }
         }
         return fireballs;
@@ -63,6 +65,7 @@
      * Adds fireballs to create an explosion
      */
     CanvasExplosionView.prototype.render = function() {
+        this.animationId = requestAnimationFrame(this.render.bind(this));
         this.clear();
         var ctx = this.ctx, i,
                 fireballs = this.fireballs,
@@ -85,7 +88,7 @@
      * Removes the explosion element from the page
      */
     CanvasExplosionView.prototype.destroy = function() {
-        window.clearInterval(this.interval);
+        cancelAnimationFrame(this.animationId);
         this.jContainer.remove();
     };
 
@@ -95,19 +98,20 @@
      */
     CanvasExplosionView.DURATION = 800;
 
-    function FireBall(x, y, size, color) {
+    function FireBall(x, y, size, fn, color) {
         this.x = x;
         this.y = y;
+        this.fn = fn;
         this.size = size;
         this.color = color;
     }
 
     FireBall.prototype.render = function(ctx, time) {
-        var size = this.size * time, radius = size / 2;
+        var size = this.size * this.fn(time), radius = size / 2;
         ctx.fillStyle = this.color;
         ctx.globalAlpha = time;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, radius, 0, Math.PI*2, true);
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2, true);
         ctx.fill();
     };
 
