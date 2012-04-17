@@ -188,6 +188,9 @@ body {
 }
 
 .player .nameBadge {
+
+    display: none;
+
     border-radius: 20px;
     position: absolute;
 

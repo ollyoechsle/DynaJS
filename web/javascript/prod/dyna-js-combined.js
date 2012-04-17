@@ -87,31 +87,16 @@ if (!Array.prototype.forEach) {
         }
         // 8. return undefined
     };
-}if (!Function.prototype.bind) {
-    Function.prototype.bind = function (oThis) {
-        if (typeof this !== "function") {
-            // closest thing possible to the ECMAScript 5 internal IsCallable function
-            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-        }
-
-        var fSlice = Array.prototype.slice,
-                aArgs = fSlice.call(arguments, 1),
-                fToBind = this,
-                fNOP = function () {
-                },
-                fBound = function () {
-                    return fToBind.apply(this instanceof fNOP
-                            ? this
-                            : oThis || window,
-                            aArgs.concat(fSlice.call(arguments)));
-                };
-
-        fNOP.prototype = this.prototype;
-        fBound.prototype = new fNOP();
-
-        return fBound;
-    };
-}(function() {
+}//Because Safari 5.1 doesn't have Function.bind
+if (typeof(Function.prototype.bind) == 'undefined') {
+	Function.prototype.bind = function(context) {
+		var oldRef = this;
+		return function() {
+			return oldRef.apply(context || null, Array.prototype.slice.call(arguments));
+		};
+	}
+}
+(function() {
 
     /**
      * Returns a Gaussian Random Number around a normal distribution defined by the mean
@@ -1419,10 +1404,18 @@ if (!Array.prototype.forEach) {
             delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
             cx = (tile.x + 0.5) * tileSize;
             cy = (tile.y + 0.5) * tileSize;
-            fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start + delay)); // white hot
-            fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(0.3), "#F7EC64", start + delay)); // yellow
-            fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(0.5), "#E83C0A", start + delay)); // red
         }
+
+        cx = (explosion.x + 0.5) * tileSize;
+        cy = (explosion.y + 0.5) * tileSize;
+        fireballs.push(new Flash(cx, cy, explosion, 10, 5, tileSize, "#E83C0A", start));
+        fireballs.push(new Flash(cx, cy, explosion, 5, 2, tileSize * 0.8, "#F7EC64", start));
+        fireballs.push(new Flash(cx, cy, explosion, 2, 2, tileSize * 0.25, "#FFFFFF", start));
+
+        fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start)); // white hot
+        //fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(0.3), "#F7EC64", start)); // yellow
+        //fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(0.5), "#E83C0A", start)); // red*/
+
         return fireballs;
     };
 
@@ -1481,9 +1474,93 @@ if (!Array.prototype.forEach) {
     FireBall.prototype.render = function(ctx, now) {
         var size = this.size * this.fn(this.getTimeElapsed(now)), radius = size / 2;
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.time;
+        ctx.globalAlpha = 0.5;
         ctx.beginPath();
         ctx.arc(this.x, this.y, radius, 0, Math.PI * 2, true);
+        ctx.fill();
+    };
+
+    function Flash(x, y, explosion, innerWidth, outerWidth, tileSize, color, start) {
+        this.x = x;
+        this.y = y;
+        this.innerWidth = innerWidth;
+        this.outerWidth = outerWidth;
+        this.fn = Math.getGaussianFunction(0.5);
+        this.color = color;
+        if (explosion.northExtent) {
+            this.northPoint = tileSize * (explosion.northExtent + 0.5);
+        }
+
+        if (explosion.eastExtent) {
+            this.eastPoint = tileSize * (explosion.eastExtent + 0.5);
+
+        }
+        if (explosion.southExtent) {
+            this.southPoint = tileSize * (explosion.southExtent + 0.5);
+
+        }
+        if (explosion.westExtent) {
+            this.westPoint = tileSize * (explosion.westExtent + 0.5);
+        }
+        this.start = start;
+    }
+
+    /**
+     * @type {Number} The start time
+     */
+    Flash.prototype.start = null;
+    Flash.prototype.points = [];
+
+    Flash.prototype.getTimeElapsed = function(now) {
+        return (now - this.start) / CanvasExplosionView.DURATION;
+    };
+
+    Flash.prototype.render = function(ctx, now) {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = 0.75;
+
+        var
+                size = this.fn(this.getTimeElapsed(now)),
+                innerWidth = this.innerWidth * size,
+                outerWidth = this.outerWidth * size,
+                dist;
+
+        ctx.beginPath();
+
+        ctx.moveTo(this.x - innerWidth, this.y - innerWidth);
+
+        // north point
+        if (this.northPoint) {
+            dist = this.y - (this.northPoint * size);
+            ctx.lineTo(this.x - outerWidth, dist);
+            ctx.lineTo(this.x + outerWidth, dist);
+        }
+        ctx.lineTo(this.x + innerWidth, this.y - innerWidth);
+
+        // east point
+        if (this.eastPoint) {
+            dist = this.x + (this.eastPoint * size);
+            ctx.lineTo(dist, this.y - outerWidth);
+            ctx.lineTo(dist, this.y + outerWidth);
+        }
+        ctx.lineTo(this.x + innerWidth, this.y + innerWidth);
+
+        // south point
+        if (this.southPoint) {
+            dist = this.y + (this.southPoint * size);
+            ctx.lineTo(this.x + outerWidth, dist);
+            ctx.lineTo(this.x - outerWidth, dist);
+        }
+        ctx.lineTo(this.x - innerWidth, this.y + innerWidth);
+
+        // west point
+        if (this.westPoint) {
+            dist = this.x - (this.westPoint * size);
+            ctx.lineTo(dist, this.y + outerWidth);
+            ctx.lineTo(dist, this.y - outerWidth);
+        }
+        ctx.lineTo(this.x - innerWidth, this.y - innerWidth);
+
         ctx.fill();
     };
 
