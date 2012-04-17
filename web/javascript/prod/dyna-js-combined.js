@@ -1399,22 +1399,43 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
     CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
         var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
-        for (i = 0; i < explosion.tilesAffected.length; i++) {
-            tile = explosion.tilesAffected[i];
-            delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
-            cx = (tile.x + 0.5) * tileSize;
-            cy = (tile.y + 0.5) * tileSize;
-        }
 
         cx = (explosion.x + 0.5) * tileSize;
         cy = (explosion.y + 0.5) * tileSize;
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start).withOpacity(0.5));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start));
+        var expansionFn = Math.getGaussianFunction(0.33);
 
-        //fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start)); // white hot
-        //fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(0.3), "#F7EC64", start)); // yellow
-        //fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(0.5), "#E83C0A", start)); // red*/
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start)
+                        .withExpansionFn(expansionFn)
+                        .withOpacityFn(function() {
+                    return 0.5
+                })
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start)
+                        .withExpansionFn(expansionFn)
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start)
+                        .withExpansionFn(expansionFn)
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "rgba(0, 0, 0, 0)", start + 500)
+                        .withOpacityFn(Math.getGaussianFunction(0.33))
+                        .withDuration(1500)
+                        .withShadow(20, '#000000')
+                );
+
+        /*     for (i = 0; i < explosion.tilesAffected.length; i++) {
+         tile = explosion.tilesAffected[i];
+         delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
+         cx = (tile.x + 0.5) * tileSize;
+         cy = (tile.y + 0.5) * tileSize;
+         fireballs.push(new Dyna.ui.Smoke(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), start + delay)); // white hot
+         }*/
 
         return fireballs;
     };
@@ -2500,7 +2521,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     function FireBall(x, y, size, fn, color, start) {
         this.x = x;
         this.y = y;
-        this.fn = fn;
+        this.expansionFn = fn;
         this.size = size;
         this.color = color;
         this.start = start;
@@ -2516,7 +2537,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     };
 
     FireBall.prototype.render = function(ctx, now) {
-        var size = this.size * this.fn(this.getTimeElapsed(now)), radius = size / 2;
+        var size = this.size * this.expansionFn(this.getTimeElapsed(now)), radius = size / 2;
         ctx.fillStyle = this.color;
         ctx.globalAlpha = 0.5;
         ctx.beginPath();
@@ -2533,7 +2554,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         this.y = y;
         this.innerWidth = innerWidth;
         this.outerWidth = outerWidth;
-        this.fn = Math.getGaussianFunction(0.33);
+        this.expansionFn = Flash.STATIC;
         this.color = color;
         var min = (tileSize * 0.5) - outerWidth;
         if (explosion.northExtent) {
@@ -2553,7 +2574,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         }
 
         this.start = start;
-        this.opacity = 1.0;
+        this.opacityFn = Flash.STATIC;
+        this.shadowColor = color;
     }
 
     /**
@@ -2566,31 +2588,57 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     Flash.prototype.southPoint = null;
     Flash.prototype.eastPoint = null;
     Flash.prototype.westPoint = null;
-    Flash.prototype.fn = null;
+    Flash.prototype.expansionFn = null;
     Flash.prototype.color = null;
     Flash.prototype.innerWidth = null;
     Flash.prototype.outerWidth = null;
+    Flash.prototype.opacityFn = null;
+    Flash.prototype.blur = 5;
+    Flash.prototype.shadowColor = null;
+    Flash.prototype.duration = Dyna.ui.CanvasExplosionView.DURATION;
 
-    Flash.prototype.withOpacity = function(opacity) {
-        this.opacity = opacity;
+    Flash.prototype.withOpacityFn = function(opacityFn) {
+        this.opacityFn = opacityFn;
+        return this;
+    };
+
+    Flash.prototype.withExpansionFn = function(fn) {
+        this.expansionFn = fn;
+        return this;
+    };
+
+    Flash.prototype.withShadow = function(blur, shadowColor) {
+        this.blur = blur;
+        this.shadowColor = shadowColor;
+        return this;
+    };
+
+    Flash.prototype.withDuration = function(duration) {
+        this.duration = duration;
         return this;
     };
 
     Flash.prototype.getTimeElapsed = function(now) {
-        return (now - this.start) / Dyna.ui.CanvasExplosionView.DURATION;
+        return (now - this.start) / this.duration;
     };
 
     Flash.prototype.render = function(ctx, now) {
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.opacity;
-        ctx.shadowBlur    = 5;
-        ctx.shadowColor   = this.color;
+
+        if (now < this.start) {
+            return;
+        }
 
         var
-                progress = this.fn(this.getTimeElapsed(now)),
-                innerWidth = this.innerWidth * progress,
-                outerWidth = this.outerWidth * progress,
+                elapsed = this.getTimeElapsed(now),
+                expansion = this.expansionFn(elapsed),
+                innerWidth = this.innerWidth * expansion,
+                outerWidth = this.outerWidth * expansion,
                 furthest;
+
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacityFn(elapsed);
+        ctx.shadowBlur = this.blur;
+        ctx.shadowColor = this.shadowColor;
 
         ctx.beginPath();
 
@@ -2598,7 +2646,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
         // north point
         if (this.northPoint) {
-            furthest = this.y - (this.northPoint * progress);
+            furthest = this.y - (this.northPoint * expansion);
             ctx.lineTo(this.x - outerWidth, furthest);
             ctx.arcTo(this.x - outerWidth, furthest - outerWidth, this.x, furthest - outerWidth, outerWidth);
             ctx.arcTo(this.x + outerWidth, furthest - outerWidth, this.x + outerWidth, furthest, outerWidth);
@@ -2607,7 +2655,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
         // east point
         if (this.eastPoint) {
-            furthest = this.x + (this.eastPoint * progress);
+            furthest = this.x + (this.eastPoint * expansion);
             ctx.lineTo(furthest, this.y - outerWidth);
             ctx.arcTo(furthest + outerWidth, this.y - outerWidth, furthest + outerWidth, this.y, outerWidth);
             ctx.arcTo(furthest + outerWidth, this.y + outerWidth, furthest, this.y + outerWidth, outerWidth);
@@ -2616,7 +2664,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
         // south point
         if (this.southPoint) {
-            furthest = this.y + (this.southPoint * progress);
+            furthest = this.y + (this.southPoint * expansion);
             ctx.lineTo(this.x + outerWidth, furthest);
             ctx.arcTo(this.x + outerWidth, furthest + outerWidth, this.x, furthest + outerWidth, outerWidth);
             ctx.arcTo(this.x - outerWidth, furthest + outerWidth, this.x - outerWidth, furthest, outerWidth);
@@ -2625,7 +2673,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
         // west point
         if (this.westPoint) {
-            furthest = this.x - (this.westPoint * progress);
+            furthest = this.x - (this.westPoint * expansion);
             ctx.lineTo(furthest, this.y + outerWidth);
             ctx.arcTo(furthest - outerWidth, this.y + outerWidth, furthest - outerWidth, this.y, outerWidth);
             ctx.arcTo(furthest - outerWidth, this.y - outerWidth, furthest, this.y - outerWidth, outerWidth);
@@ -2633,6 +2681,10 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         ctx.lineTo(this.x - innerWidth, this.y - innerWidth);
 
         ctx.fill();
+    };
+
+    Flash.STATIC = function() {
+        return 1;
     };
 
     Dyna.ui.Flash = Flash;

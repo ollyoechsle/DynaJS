@@ -3,7 +3,7 @@
     function FireBall(x, y, size, fn, color, start) {
         this.x = x;
         this.y = y;
-        this.fn = fn;
+        this.expansionFn = fn;
         this.size = size;
         this.color = color;
         this.start = start;
@@ -19,7 +19,7 @@
     };
 
     FireBall.prototype.render = function(ctx, now) {
-        var size = this.size * this.fn(this.getTimeElapsed(now)), radius = size / 2;
+        var size = this.size * this.expansionFn(this.getTimeElapsed(now)), radius = size / 2;
         ctx.fillStyle = this.color;
         ctx.globalAlpha = 0.5;
         ctx.beginPath();

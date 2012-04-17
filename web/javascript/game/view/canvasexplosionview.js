@@ -43,22 +43,43 @@
 
     CanvasExplosionView.prototype.createExplosion = function(explosion, map) {
         var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
-        for (i = 0; i < explosion.tilesAffected.length; i++) {
-            tile = explosion.tilesAffected[i];
-            delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
-            cx = (tile.x + 0.5) * tileSize;
-            cy = (tile.y + 0.5) * tileSize;
-        }
 
         cx = (explosion.x + 0.5) * tileSize;
         cy = (explosion.y + 0.5) * tileSize;
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start).withOpacity(0.5));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start));
+        var expansionFn = Math.getGaussianFunction(0.33);
 
-        //fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start)); // white hot
-        //fireballs.push(new FireBall(cx, cy, tileSize / 2, Math.getGaussianFunction(0.3), "#F7EC64", start)); // yellow
-        //fireballs.push(new FireBall(cx, cy, tileSize, Math.getGaussianFunction(0.5), "#E83C0A", start)); // red*/
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start)
+                        .withExpansionFn(expansionFn)
+                        .withOpacityFn(function() {
+                    return 0.5
+                })
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start)
+                        .withExpansionFn(expansionFn)
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start)
+                        .withExpansionFn(expansionFn)
+                );
+
+        fireballs.push(
+                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "rgba(0, 0, 0, 0)", start + 500)
+                        .withOpacityFn(Math.getGaussianFunction(0.33))
+                        .withDuration(1500)
+                        .withShadow(20, '#000000')
+                );
+
+        /*     for (i = 0; i < explosion.tilesAffected.length; i++) {
+         tile = explosion.tilesAffected[i];
+         delay = 500 * Math.sqrt(Math.pow(tile.x - explosion.x, 2) + Math.pow(tile.y - explosion.y, 2));
+         cx = (tile.x + 0.5) * tileSize;
+         cy = (tile.y + 0.5) * tileSize;
+         fireballs.push(new Dyna.ui.Smoke(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), start + delay)); // white hot
+         }*/
 
         return fireballs;
     };
