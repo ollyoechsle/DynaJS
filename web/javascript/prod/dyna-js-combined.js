@@ -2583,6 +2583,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     Flash.prototype.render = function(ctx, now) {
         ctx.fillStyle = this.color;
         ctx.globalAlpha = this.opacity;
+        ctx.shadowBlur    = 5;
+        ctx.shadowColor   = this.color;
 
         var
                 progress = this.fn(this.getTimeElapsed(now)),
