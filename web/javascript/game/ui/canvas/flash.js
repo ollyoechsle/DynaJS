@@ -5,22 +5,23 @@
         this.y = y;
         this.innerWidth = innerWidth;
         this.outerWidth = outerWidth;
-        this.fn = Math.getGaussianFunction(0.5);
+        this.fn = Math.getGaussianFunction(0.33);
         this.color = color;
+        var min = (tileSize * 0.5) - outerWidth;
         if (explosion.northExtent) {
-            this.northPoint = tileSize * (explosion.northExtent + 0.5);
+            this.northPoint = (tileSize * explosion.northExtent) + min;
         }
 
         if (explosion.eastExtent) {
-            this.eastPoint = tileSize * (explosion.eastExtent + 0.5);
+            this.eastPoint = (tileSize * explosion.eastExtent) + min;
 
         }
         if (explosion.southExtent) {
-            this.southPoint = tileSize * (explosion.southExtent + 0.5);
+            this.southPoint = (tileSize * explosion.southExtent) + min;
 
         }
         if (explosion.westExtent) {
-            this.westPoint = tileSize * (explosion.westExtent + 0.5);
+            this.westPoint = (tileSize * explosion.westExtent) + min;
         }
 
         this.start = start;
@@ -41,6 +42,11 @@
     Flash.prototype.color = null;
     Flash.prototype.innerWidth = null;
     Flash.prototype.outerWidth = null;
+
+    Flash.prototype.withOpacity = function(opacity) {
+        this.opacity = opacity;
+        return this;
+    };
 
     Flash.prototype.getTimeElapsed = function(now) {
         return (now - this.start) / Dyna.ui.CanvasExplosionView.DURATION;

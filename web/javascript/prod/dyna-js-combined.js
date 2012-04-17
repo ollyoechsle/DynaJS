@@ -1408,8 +1408,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
         cx = (explosion.x + 0.5) * tileSize;
         cy = (explosion.y + 0.5) * tileSize;
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 5, 5, tileSize - 5, "#F7EC64", start));
+        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start).withOpacity(0.5));
+        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start));
         fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start));
 
         //fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start)); // white hot
@@ -1451,7 +1451,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
      * The amount of time (in ms) that the view will live for.
      * @type {Number}
      */
-    CanvasExplosionView.DURATION = 800;
+    CanvasExplosionView.DURATION = 500;
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
 
@@ -2533,22 +2533,23 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         this.y = y;
         this.innerWidth = innerWidth;
         this.outerWidth = outerWidth;
-        this.fn = Math.getGaussianFunction(0.5);
+        this.fn = Math.getGaussianFunction(0.33);
         this.color = color;
+        var min = (tileSize * 0.5) - outerWidth;
         if (explosion.northExtent) {
-            this.northPoint = tileSize * (explosion.northExtent + 0.5);
+            this.northPoint = (tileSize * explosion.northExtent) + min;
         }
 
         if (explosion.eastExtent) {
-            this.eastPoint = tileSize * (explosion.eastExtent + 0.5);
+            this.eastPoint = (tileSize * explosion.eastExtent) + min;
 
         }
         if (explosion.southExtent) {
-            this.southPoint = tileSize * (explosion.southExtent + 0.5);
+            this.southPoint = (tileSize * explosion.southExtent) + min;
 
         }
         if (explosion.westExtent) {
-            this.westPoint = tileSize * (explosion.westExtent + 0.5);
+            this.westPoint = (tileSize * explosion.westExtent) + min;
         }
 
         this.start = start;
@@ -2569,6 +2570,11 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     Flash.prototype.color = null;
     Flash.prototype.innerWidth = null;
     Flash.prototype.outerWidth = null;
+
+    Flash.prototype.withOpacity = function(opacity) {
+        this.opacity = opacity;
+        return this;
+    };
 
     Flash.prototype.getTimeElapsed = function(now) {
         return (now - this.start) / Dyna.ui.CanvasExplosionView.DURATION;

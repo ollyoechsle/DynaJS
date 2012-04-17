@@ -52,8 +52,8 @@
 
         cx = (explosion.x + 0.5) * tileSize;
         cy = (explosion.y + 0.5) * tileSize;
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start));
-        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 5, 5, tileSize - 5, "#F7EC64", start));
+        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start).withOpacity(0.5));
+        fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start));
         fireballs.push(new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start));
 
         //fireballs.push(new FireBall(cx, cy, tileSize / 4, Math.getGaussianFunction(0.1), "#FFFFFF", start)); // white hot
@@ -95,7 +95,7 @@
      * The amount of time (in ms) that the view will live for.
      * @type {Number}
      */
-    CanvasExplosionView.DURATION = 800;
+    CanvasExplosionView.DURATION = 500;
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
 
