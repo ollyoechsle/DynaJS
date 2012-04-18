@@ -1405,7 +1405,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         var expansionFn = Math.getGaussianFunction(0.33);
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "#E83C0A", start)
+                new Dyna.ui.Flash(cx, cy, explosion, 20, 20, tileSize, "#E83C0A", start)
                         .withExpansionFn(expansionFn)
                         .withOpacityFn(function() {
                     return 0.5
@@ -1413,17 +1413,17 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 7, 7, tileSize - 5, "#F7EC64", start)
+                new Dyna.ui.Flash(cx, cy, explosion, 15, 15, tileSize - 5, "#F7EC64", start)
                         .withExpansionFn(expansionFn)
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 2, 2, tileSize - 8, "#FFFFFF", start)
+                new Dyna.ui.Flash(cx, cy, explosion, 5, 5, tileSize - 10, "#FFFFFF", start)
                         .withExpansionFn(expansionFn)
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 10, 10, tileSize, "rgba(0, 0, 0, 0)", start + 500)
+                new Dyna.ui.Flash(cx, cy, explosion, 15, 15, tileSize - 5, "rgba(0, 0, 0, 0)", start + 500)
                         .withOpacityFn(Math.getGaussianFunction(0.33))
                         .withDuration(1500)
                         .withShadow(20, '#000000')
@@ -1648,7 +1648,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
-        LevelView.tileSize = 30;
+
         this.level.on(Dyna.model.Level.LIFEFORM_ADDED, this._createViewForLifeForm.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
@@ -1683,6 +1683,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         }
 
     };
+    
+    LevelView.tileSize = 50;
 
     Dyna.ui.LevelView = LevelView;
 
@@ -1729,18 +1731,18 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         var newContents = document.createDocumentFragment();
 
         newContents.appendChild(
-                this.getTile("wall-corner", -0.33, -0.33)[0]
+                this.getTile("wall-corner", -0.5, -0.5)[0]
                 );
 
         for (x = 0; x < this.map.width; x++) {
 
             newContents.appendChild(
-                    this.getTile("wall-horizontal", x, -0.33)[0]
+                    this.getTile("wall-horizontal", x, -0.5)[0]
                     );
         }
 
         newContents.appendChild(
-                this.getTile("wall-corner", this.map.width, -0.33)[0]
+                this.getTile("wall-corner", this.map.width, -0.5)[0]
                 );
 
         for (var y = 0; y < this.map.height; y++) {
@@ -1751,7 +1753,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
             }
 
             newContents.appendChild(
-                    this.getTile("wall-vertical", -0.333, y)[0]
+                    this.getTile("wall-vertical", -0.5, y)[0]
                     );
 
             newContents.appendChild(
@@ -1761,7 +1763,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         }
 
         newContents.appendChild(
-                this.getTile("wall-corner", -0.33, this.map.height)[0]
+                this.getTile("wall-corner", -0.5, this.map.height)[0]
                 );
 
         for (x = 0; x < this.map.width; x++) {

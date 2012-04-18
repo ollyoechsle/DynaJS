@@ -35,7 +35,7 @@
 
     LevelView.prototype.initialise = function() {
         log("Initialising level view");
-        LevelView.tileSize = 30;
+
         this.level.on(Dyna.model.Level.LIFEFORM_ADDED, this._createViewForLifeForm.bind(this));
         this.level.on(Dyna.model.Level.BOMB_ADDED, this._handleBombLaid.bind(this));
         this.level.on(Dyna.model.Level.LEVEL_UP, this._handlePlayerLevelUp.bind(this));
@@ -70,6 +70,8 @@
         }
 
     };
+    
+    LevelView.tileSize = 50;
 
     Dyna.ui.LevelView = LevelView;
 

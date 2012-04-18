@@ -41,18 +41,18 @@
         var newContents = document.createDocumentFragment();
 
         newContents.appendChild(
-                this.getTile("wall-corner", -0.33, -0.33)[0]
+                this.getTile("wall-corner", -0.5, -0.5)[0]
                 );
 
         for (x = 0; x < this.map.width; x++) {
 
             newContents.appendChild(
-                    this.getTile("wall-horizontal", x, -0.33)[0]
+                    this.getTile("wall-horizontal", x, -0.5)[0]
                     );
         }
 
         newContents.appendChild(
-                this.getTile("wall-corner", this.map.width, -0.33)[0]
+                this.getTile("wall-corner", this.map.width, -0.5)[0]
                 );
 
         for (var y = 0; y < this.map.height; y++) {
@@ -63,7 +63,7 @@
             }
 
             newContents.appendChild(
-                    this.getTile("wall-vertical", -0.333, y)[0]
+                    this.getTile("wall-vertical", -0.5, y)[0]
                     );
 
             newContents.appendChild(
@@ -73,7 +73,7 @@
         }
 
         newContents.appendChild(
-                this.getTile("wall-corner", -0.33, this.map.height)[0]
+                this.getTile("wall-corner", -0.5, this.map.height)[0]
                 );
 
         for (x = 0; x < this.map.width; x++) {

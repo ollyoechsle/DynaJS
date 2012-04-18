@@ -8,26 +8,24 @@ body {
 
 #level {
     position: relative;
-    border: 10px solid black;
-    margin: 0 auto;
-    margin-top: 30px;
+    margin: 25px;
 }
 
 .tile {
     display: block;
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
 }
 
 .tile.earth {
-    background: url(../gfx/tiles/sand.png) no-repeat;
+    background: url(../gfx/tiles/sand.png);
 }
 
 .tile.wall {
     background: url(../gfx/tiles/wall.png) no-repeat;
     z-index: 50;
-    height: 35px;
+    height: 60px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -37,8 +35,8 @@ body {
 .tile.wall-vertical {
     background: url(../gfx/tiles/wall-vertical.png) no-repeat;
     z-index: 50;
-    width: 10px;
-    height: 35px;
+    width: 25px;
+    height: 60px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -48,8 +46,8 @@ body {
 .tile.wall-corner {
     background: url(../gfx/tiles/wall-corner.png) no-repeat;
     z-index: 50;
-    width: 10px;
-    height: 15px;
+    width: 25px;
+    height: 35px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -59,8 +57,8 @@ body {
 .tile.wall-horizontal {
     background: url(../gfx/tiles/wall-horizontal.png) no-repeat;
     z-index: 50;
-    width: 30px;
-    height: 15px;
+    width: 50px;
+    height: 35px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -70,7 +68,7 @@ body {
 .tile.block {
     background: url(../gfx/tiles/crate.png) no-repeat;
     z-index: 50;
-    height: 35px;
+    height: 60px;
 
     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
@@ -101,8 +99,8 @@ body {
 }
 
 .player .avatar {
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
 
     -moz-transition: all 200ms ease-in-out;
     -webkit-transition: all 200ms ease-in-out;
@@ -217,8 +215,8 @@ body {
 /* Bombs */
 
 .bomb {
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     background: url(../gfx/bombs/bomb.png) no-repeat;
     position: absolute;
     z-index: 50;
