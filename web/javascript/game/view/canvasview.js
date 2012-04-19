@@ -34,24 +34,28 @@
             */
     CanvasView.prototype.animationId = null;
 
-    CanvasView.prototype.createContext = function(jLevel) {
-        this.jContainer = jQuery("<canvas class='explosion'></canvas>")
-                .attr("width", jLevel.width())
-                .attr("height", jLevel.width())
-                .appendTo(jLevel);
+    CanvasView.prototype.createContext = function(jContainer) {
+        this.jContainer = jQuery("<canvas></canvas>").addClass(this.className)
+                .attr("width", jContainer.width())
+                .attr("height", jContainer.width())
+                .appendTo(jContainer);
         return this.jContainer[0].getContext("2d");
     };
 
     /**
-     * Adds fireballs to create an explosion
+     * Performs the animation loop
      */
+    CanvasView.prototype.animate = function() {
+        this.animationId = requestAnimationFrame(this.animate.bind(this));
+        this.render();
+    };
+
     CanvasView.prototype.render = function() {
-        this.animationId = requestAnimationFrame(this.render.bind(this));
-        this.clear();
         var ctx = this.ctx, i,
                 animations = this.animations,
                 numAnimations = animations.length,
                 now = +new Date();
+        this.clear();
         for (i = 0; i < numAnimations; i++) {
             animations[i].render(ctx, now);
         }

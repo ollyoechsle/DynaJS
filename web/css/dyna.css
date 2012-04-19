@@ -11,6 +11,11 @@ body {
     margin: 25px;
 }
 
+.mapCanvas {
+    margin-left: -25px;
+    margin-top: -25px;
+}
+
 .tile {
     display: block;
     position: absolute;

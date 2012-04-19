@@ -4,17 +4,18 @@
      * @constructor
      * @param {jQuery} jContainer The container into which the fireballs should be placed
      * @param {Dyna.model.Explosion} explosion The explosion model object
-     * @param {Dyna.model.Map} map The map
      */
     function CanvasExplosionView(jContainer, explosion) {
         CanvasExplosionView.superclass.constructor.call(this, jContainer);
         this.animations = this.createExplosion(explosion);
-        this.render();
+        this.animate();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION * 5);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
 
     Object.extend(CanvasExplosionView, Dyna.ui.CanvasView);
+
+    CanvasExplosionView.prototype.className = "explosion";
 
     CanvasExplosionView.prototype.createExplosion = function(explosion) {
         var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;

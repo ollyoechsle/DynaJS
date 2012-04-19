@@ -1390,24 +1390,28 @@ if (typeof(Function.prototype.bind) == 'undefined') {
             */
     CanvasView.prototype.animationId = null;
 
-    CanvasView.prototype.createContext = function(jLevel) {
-        this.jContainer = jQuery("<canvas class='explosion'></canvas>")
-                .attr("width", jLevel.width())
-                .attr("height", jLevel.width())
-                .appendTo(jLevel);
+    CanvasView.prototype.createContext = function(jContainer) {
+        this.jContainer = jQuery("<canvas></canvas>").addClass(this.className)
+                .attr("width", jContainer.width())
+                .attr("height", jContainer.width())
+                .appendTo(jContainer);
         return this.jContainer[0].getContext("2d");
     };
 
     /**
-     * Adds fireballs to create an explosion
+     * Performs the animation loop
      */
+    CanvasView.prototype.animate = function() {
+        this.animationId = requestAnimationFrame(this.animate.bind(this));
+        this.render();
+    };
+
     CanvasView.prototype.render = function() {
-        this.animationId = requestAnimationFrame(this.render.bind(this));
-        this.clear();
         var ctx = this.ctx, i,
                 animations = this.animations,
                 numAnimations = animations.length,
                 now = +new Date();
+        this.clear();
         for (i = 0; i < numAnimations; i++) {
             animations[i].render(ctx, now);
         }
@@ -1429,86 +1433,6 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     };
 
     Dyna.ui.CanvasView = CanvasView;
-
-})(window.Dyna, jQuery);(function(Dyna, jQuery) {
-
-    /**
-     * @constructor
-     * @param {jQuery} jContainer The container into which the fireballs should be placed
-     * @param {Dyna.model.Explosion} explosion The explosion model object
-     * @param {Dyna.model.Map} map The map
-     */
-    function ExplosionView(jContainer, explosion, map) {
-        this.jContainer = jQuery(jContainer);
-        this.createExplosion(explosion, map);
-        Dyna.util.Timer.setTimeout(this.destroy.bind(this), ExplosionView.DURATION);
-    }
-
-    /**
-     * The container of the explosion element
-     * @private
-     * @type {jQuery}
-     */
-    ExplosionView.prototype.jContainer = null;
-
-    /**
-     * The explosion element containing a number of fireballs
-     * @private
-     * @type {jQuery}
-     */
-    ExplosionView.prototype.jExplosion = null;
-
-    /**
-     * Adds fireballs to create an explosion
-     * @param {Dyna.model.Explosion} explosion The explosion model object
-     * @param {Dyna.model.Map} map The map
-     */
-    ExplosionView.prototype.createExplosion = function(explosion, map) {
-        var fragment = document.createDocumentFragment();
-        for (var i = 0; i < explosion.tilesAffected.length; i++) {
-            var tile = explosion.tilesAffected[i];
-            if (map.inBounds(tile.x, tile.y)) {
-                fragment.appendChild(ExplosionView.createFireBall(tile.x, tile.y));
-            }
-        }
-        this.jExplosion = jQuery("<div></div>").append(fragment);
-        this.jContainer.append(this.jExplosion);
-        this.boom();
-    };
-
-    /**
-     * Static method to create a fireball
-     * @param {Number} x The X coordinate
-     * @param {Number} y The Y coordinate
-     */
-    ExplosionView.createFireBall = function(x, y) {
-        return jQuery("<div class='fireBall'></div>")
-            .css("left", x * Dyna.ui.LevelView.tileSize)
-            .css("top", y * Dyna.ui.LevelView.tileSize)
-            [0];
-    };
-
-    /**
-     * Plays a boom sound
-     */
-    ExplosionView.prototype.boom = function() {
-        Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
-    };
-
-    /**
-     * Removes the explosion element from the page
-     */
-    ExplosionView.prototype.destroy = function() {
-        this.jExplosion.remove();
-    };
-
-    /**
-     * The amount of time (in ms) that the view will live for.
-     * @type {Number}
-     */
-    ExplosionView.DURATION = 800;
-
-    Dyna.ui.ExplosionView = ExplosionView;
 
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
@@ -1618,6 +1542,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
     LevelView.prototype._handleExplosion = function(explosion) {
         this.explosionViewFactory(explosion);
+        this.mapView.updateAll(this.level);
     };
 
     LevelView.prototype._handlePlayerLevelUp = function(player) {
@@ -1630,14 +1555,12 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     };
 
     LevelView.prototype.updateAll = function() {
-
         this.mapView.updateAll(this.level);
         for (var i = 0; i < this.lifeformViews.length; i++) {
             this.lifeformViews[i].updateAll();
         }
-
     };
-    
+
     LevelView.tileSize = 50;
 
     Dyna.ui.LevelView = LevelView;
@@ -2478,17 +2401,18 @@ if (typeof(Function.prototype.bind) == 'undefined') {
      * @constructor
      * @param {jQuery} jContainer The container into which the fireballs should be placed
      * @param {Dyna.model.Explosion} explosion The explosion model object
-     * @param {Dyna.model.Map} map The map
      */
     function CanvasExplosionView(jContainer, explosion) {
         CanvasExplosionView.superclass.constructor.call(this, jContainer);
         this.animations = this.createExplosion(explosion);
-        this.render();
+        this.animate();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION * 5);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
     }
 
     Object.extend(CanvasExplosionView, Dyna.ui.CanvasView);
+
+    CanvasExplosionView.prototype.className = "explosion";
 
     CanvasExplosionView.prototype.createExplosion = function(explosion) {
         var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
@@ -2540,6 +2464,95 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     CanvasExplosionView.DURATION = 500;
 
     Dyna.ui.CanvasExplosionView = CanvasExplosionView;
+
+})(window.Dyna, jQuery);(function(Dyna, jQuery) {
+
+    /**
+     * @constructor
+     * @param {jQuery} jContainer The container into which the fireballs should be placed
+     * @param {Dyna.model.Map} map The map object
+     */
+    function CanvasMapView(jContainer, map) {
+        CanvasMapView.superclass.constructor.call(this, jContainer);
+        this.map = map;
+        this.images = this.loadImages();
+    }
+
+    Object.extend(CanvasMapView, Dyna.ui.CanvasView);
+
+    CanvasMapView.prototype.className = "mapCanvas";
+
+    CanvasMapView.prototype.images = null;
+
+    CanvasMapView.prototype.loadImages = function() {
+        return {
+            "earth": this.loadImage("gfx/tiles/sand.png"),
+            "wall":this.loadImage("gfx/tiles/wall.png"),
+            "block": this.loadImage("gfx/tiles/crate.png"),
+            "powerup": this.loadImage("gfx/powerups/power.png"),
+            "corner": this.loadImage("gfx/tiles/wall-corner.png"),
+            "wall_horizontal": this.loadImage("gfx/tiles/wall-horizontal.png"),
+            "wall_vertical": this.loadImage("gfx/tiles/wall-vertical.png")
+        }
+    };
+
+    CanvasMapView.prototype.loadImage = function(src) {
+        var img = new Image();
+        img.src = src;
+        return img;
+    };
+
+    CanvasMapView.prototype.createMapTiles = function(map) {
+        var i, tile, tiles = [], tileSize = Dyna.ui.LevelView.tileSize, tx, ty;
+
+        this.horizontalWall(tiles, tileSize, map, 0);
+
+        for (var y = 0; y < map.height; y++) {
+            ty = y * tileSize + 25;
+            tiles.push(new Tile(0, ty, 25, 50, this.images.wall_vertical));
+            for (var x = 0; x < map.width; x++) {
+                tile = map.tileAt(x, y);
+                tx = x * tileSize + 25;
+                tiles.push(new Tile(tx, ty + (tile.solid ? 0 : 10), 50, 50, this.images[tile.type]));
+            }
+            tiles.push(new Tile(map.width * tileSize + 25, ty, 25, 50, this.images.wall_vertical));
+        }
+
+        this.horizontalWall(tiles, tileSize, map, map.height * tileSize + 25);
+
+        return tiles;
+    };
+
+    CanvasMapView.prototype.horizontalWall = function(tiles, tileSize, map, y) {
+        tiles.push(new Tile(0, y, 25, 25, this.images.corner));
+        for (var x = 0; x < map.width; x++) {
+            tiles.push(new Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
+        }
+        tiles.push(new Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
+    };
+
+    CanvasMapView.prototype.updateAll = function() {
+        log("Canvas Map View: UpdateAll ---------");
+        this.animations = this.createMapTiles(this.map);
+        this.render();
+    };
+
+    function Tile(x, y, width, height, image) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.image = image;
+    }
+
+    Tile.prototype.render = function(ctx, now) {
+        ctx.globalAlpha = 0.25;
+        ctx.fillRect(this.x + 10, this.y + 10, this.width, this.height);
+        ctx.globalAlpha = 1.0;
+        ctx.drawImage(this.image, this.x, this.y);
+    };
+
+    Dyna.ui.CanvasMapView = CanvasMapView;
 
 })(window.Dyna, jQuery);(function() {
 
@@ -2742,7 +2755,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         // view
         var
                 mapViewFactory = function(map) {
-                    return new Dyna.ui.MapView("#level .map", map)
+                    return new Dyna.ui.CanvasMapView("#level .map", map)
                 },
                 lifeformViewFactory = function(lifeform) {
                     return new Dyna.ui.PlayerView("#level .players", lifeform)

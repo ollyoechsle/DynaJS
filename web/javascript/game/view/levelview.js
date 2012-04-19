@@ -51,6 +51,7 @@
 
     LevelView.prototype._handleExplosion = function(explosion) {
         this.explosionViewFactory(explosion);
+        this.mapView.updateAll(this.level);
     };
 
     LevelView.prototype._handlePlayerLevelUp = function(player) {
@@ -63,14 +64,12 @@
     };
 
     LevelView.prototype.updateAll = function() {
-
         this.mapView.updateAll(this.level);
         for (var i = 0; i < this.lifeformViews.length; i++) {
             this.lifeformViews[i].updateAll();
         }
-
     };
-    
+
     LevelView.tileSize = 50;
 
     Dyna.ui.LevelView = LevelView;

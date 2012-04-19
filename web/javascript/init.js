@@ -26,7 +26,7 @@
         // view
         var
                 mapViewFactory = function(map) {
-                    return new Dyna.ui.MapView("#level .map", map)
+                    return new Dyna.ui.CanvasMapView("#level .map", map)
                 },
                 lifeformViewFactory = function(lifeform) {
                     return new Dyna.ui.PlayerView("#level .players", lifeform)
