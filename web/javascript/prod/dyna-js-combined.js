@@ -2503,32 +2503,47 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     };
 
     CanvasMapView.prototype.createMapTiles = function(map) {
-        var i, tile, tiles = [], tileSize = Dyna.ui.LevelView.tileSize, tx, ty;
+        var i, tile, tileSize = Dyna.ui.LevelView.tileSize, x, y, tx, ty,
+                groundLayer = new Dyna.ui.Layer("ground"),
+                shadowLayer = new Dyna.ui.Layer("shadow"),
+                wallLayer = new Dyna.ui.Layer("wall");
 
-        this.horizontalWall(tiles, tileSize, map, 0);
+        this.horizontalWall(wallLayer, shadowLayer, tileSize, map, 0);
 
-        for (var y = 0; y < map.height; y++) {
+        for (y = 0; y < map.height; y++) {
             ty = y * tileSize + 25;
-            tiles.push(new Tile(0, ty, 25, 50, this.images.wall_vertical));
-            for (var x = 0; x < map.width; x++) {
+            wallLayer.push(new Tile(0, ty, 25, 50, this.images.wall_vertical));
+            shadowLayer.push(new Shadow(0, ty, 25, 50));
+
+            for (x = 0; x < map.width; x++) {
                 tile = map.tileAt(x, y);
                 tx = x * tileSize + 25;
-                tiles.push(new Tile(tx, ty + (tile.solid ? 0 : 10), 50, 50, this.images[tile.type]));
+                if (tile.solid) {
+                    wallLayer.push(new Tile(tx, ty, 50, 50, this.images[tile.type]));
+                    shadowLayer.push(new Shadow(tx, ty, 50, 50));
+                } else {
+                    groundLayer.push(new Tile(tx, ty + 10, 50, 50, this.images[tile.type]));
+                }
             }
-            tiles.push(new Tile(map.width * tileSize + 25, ty, 25, 50, this.images.wall_vertical));
+            wallLayer.push(new Tile(map.width * tileSize + 25, ty, 25, 50, this.images.wall_vertical));
+            shadowLayer.push(new Shadow(map.width * tileSize + 25, ty, 25, 50));
+
         }
 
-        this.horizontalWall(tiles, tileSize, map, map.height * tileSize + 25);
+        this.horizontalWall(wallLayer, shadowLayer, tileSize, map, map.height * tileSize + 25);
 
-        return tiles;
+        return [groundLayer, shadowLayer, wallLayer];
     };
 
-    CanvasMapView.prototype.horizontalWall = function(tiles, tileSize, map, y) {
-        tiles.push(new Tile(0, y, 25, 25, this.images.corner));
+    CanvasMapView.prototype.horizontalWall = function(wallLayer, shadowLayer, tileSize, map, y) {
+        wallLayer.push(new Tile(0, y, 25, 25, this.images.corner));
+        shadowLayer.push(new Shadow(0, y, 25, 25));
         for (var x = 0; x < map.width; x++) {
-            tiles.push(new Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
+            wallLayer.push(new Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
+            shadowLayer.push(new Shadow(x * tileSize + 25, y, 50, 25));
         }
-        tiles.push(new Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
+        wallLayer.push(new Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
+        shadowLayer.push(new Shadow(map.width * tileSize + 25, y, 25, 25));
     };
 
     CanvasMapView.prototype.updateAll = function() {
@@ -2546,10 +2561,33 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     }
 
     Tile.prototype.render = function(ctx, now) {
-        ctx.globalAlpha = 0.25;
-        ctx.fillRect(this.x + 10, this.y + 10, this.width, this.height);
         ctx.globalAlpha = 1.0;
         ctx.drawImage(this.image, this.x, this.y);
+    };
+
+    function Shadow(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    Shadow.prototype.render = function(ctx, now) {
+        var sw = 0, sh = 0, tileWidth = this.width, tileHeight = this.height, x = this.x, y = this.y + 10;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#000';
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + tileWidth, y);
+        ctx.lineTo(x + tileWidth + sw, y + sh);
+        ctx.lineTo(x + tileWidth + sw, y + sh + tileHeight);
+        ctx.lineTo(x + sw, y + sh + tileHeight);
+        ctx.lineTo(x, y + tileHeight);
+        ctx.lineTo(x, y);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
     };
 
     Dyna.ui.CanvasMapView = CanvasMapView;
@@ -2726,6 +2764,33 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     };
 
     Dyna.ui.Flash = Flash;
+
+})(Dyna);(function(Dyna) {
+
+    function Layer(name) {
+        this.animations = [];
+        this.name = name;
+    }
+
+    Layer.prototype.animations = null;
+    Layer.prototype.name = null;
+
+    Layer.prototype.push = function(animation) {
+        if (animation) {
+            this.animations.push(animation);
+        } else {
+            log("Attempt to push invalid animation to layer " + this.name);
+        }
+    };
+
+    Layer.prototype.render = function(ctx, now) {
+        var animations = this.animations, animation;
+        for (var i = 0, l = animations.length; i < l; i++) {
+            animations[i].render(ctx, now);
+        }
+    };
+
+    Dyna.ui.Layer = Layer;
 
 })(Dyna);(function(Dyna) {
 
