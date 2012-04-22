@@ -2423,13 +2423,13 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     CanvasExplosionView.prototype.className = "explosion";
 
     CanvasExplosionView.prototype.createExplosion = function(explosion) {
-        var i, tile, fireballs = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
+        var i, tile, animations = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
 
         cx = (explosion.x + 0.5) * tileSize;
         cy = (explosion.y + 0.5) * tileSize;
         var expansionFn = Math.getGaussianFunction(0.33);
 
-        fireballs.push(
+        animations.push(
                 new Dyna.ui.Fireball(cx, cy, explosion, 20, 20, tileSize, "#E83C0A", start)
                         .withExpansionFn(expansionFn)
                         .withOpacityFn(function() {
@@ -2437,24 +2437,28 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 })
                 );
 
-        fireballs.push(
+        animations.push(
                 new Dyna.ui.Fireball(cx, cy, explosion, 15, 15, tileSize - 5, "#F7EC64", start)
                         .withExpansionFn(expansionFn)
                 );
 
-        fireballs.push(
+        animations.push(
                 new Dyna.ui.Fireball(cx, cy, explosion, 5, 5, tileSize - 10, "#FFFFFF", start)
                         .withExpansionFn(expansionFn)
                 );
 
-        fireballs.push(
+        animations.push(
                 new Dyna.ui.Fireball(cx, cy, explosion, 15, 15, tileSize - 5, "rgba(0, 0, 0, 0)", start + 500)
                         .withOpacityFn(Math.getGaussianFunction(0.33))
                         .withDuration(1500)
                         .withShadow(20, '#000000')
                 );
 
-        return fireballs;
+        for (i = 0; i < 25; i++) {
+            animations.push(new Dyna.ui.Shrapnel(cx, cy, tileSize / 2));
+        }
+
+        return animations;
     };
 
     /**
@@ -2518,19 +2522,26 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 shadowLayer = new Dyna.ui.Layer("shadow"),
                 wallLayer = new Dyna.ui.Layer("wall");
 
+        /* Draw the North Wall */
         this.horizontalWall(wallLayer, map, 0);
         this.horizontalShadow(shadowLayer, map, 0);
 
+        ty = wallWidth;
+
         for (y = 0; y < map.height; y++) {
-            ty = y * tileSize + wallWidth;
+
+            /* Draw the West Wall */
             wallLayer.push(new Dyna.ui.Tile(0, ty, wallWidth, tileSize, this.images.wall_vertical));
             if (!map.isSolid(0, y)) {
                 shadowLayer.push(new Dyna.ui.VerticalShadow(wallWidth, ty + blockHeight, tileSize));
             }
 
+            tx = wallWidth;
+
+            /* Draw one row of the map */
             for (x = 0; x < map.width; x++) {
                 tile = map.tileAt(x, y);
-                tx = x * tileSize + wallWidth;
+
                 if (tile.solid) {
                     wallLayer.push(new Dyna.ui.Tile(tx, ty, tileSize, tileSize, this.images[tile.type]));
                     if (!map.isSolid(x, y + 1)) {
@@ -2542,12 +2553,22 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 } else {
                     groundLayer.push(new Dyna.ui.Tile(tx, ty + blockHeight, tileSize, tileSize, this.images[tile.type]));
                 }
-            }
-            wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + wallWidth, ty, wallWidth, tileSize, this.images.wall_vertical));
-         }
 
+                tx += tileSize;
+
+            }
+
+            /* Draw the east wall */
+            wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + wallWidth, ty, wallWidth, tileSize, this.images.wall_vertical));
+
+            ty += tileSize;
+
+        }
+
+        /* Draw the east wall shadow in one go */
         shadowLayer.push(new Dyna.ui.VerticalShadow(map.width * tileSize + wallWidth + wallWidth, blockHeight, (map.height * tileSize) + wallWidth + wallWidth));
 
+        /* Draw the south wall */
         this.horizontalWall(wallLayer, map, (map.height * tileSize) + wallWidth);
         shadowLayer.push(new Dyna.ui.HorizontalShadow(0, (map.height * tileSize) + tileSize + blockHeight, (map.width * tileSize) + wallWidth + wallWidth));
 
@@ -2790,6 +2811,43 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
     Dyna.ui.HorizontalShadow = HorizontalShadow;
     Dyna.ui.VerticalShadow = VerticalShadow;
+
+})(Dyna);(function(Dyna) {
+
+    function Shrapnel(cx, cy, radius) {
+
+        var
+                angle = Math.random() * (Math.PI * 2),
+                r = radius + Math.random();
+
+        this.dx = r * Math.cos(angle);
+        this.dy = r * Math.sin(angle);
+        this.initX = cx + this.dx;
+        this.initY = cy + this.dy;
+        this.start = +new Date();
+    }
+
+    Shrapnel.prototype.start = null;
+    Shrapnel.prototype.initX = null;
+    Shrapnel.prototype.initY = null;
+    Shrapnel.prototype.dx = null;
+    Shrapnel.prototype.dy = null;
+    Shrapnel.prototype.speed =3;
+
+    Shrapnel.prototype.render = function(ctx, now) {
+
+        var
+                elapsed = ((now - this.start) / 1000) * this.speed,
+                currentX = this.initX + (elapsed * this.dx),
+                currentY = this.initY + (elapsed * this.dy);
+
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(currentX, currentY, 3, 3);
+
+    };
+
+    Dyna.ui.Shrapnel = Shrapnel;
 
 })(Dyna);(function(Dyna) {
 
