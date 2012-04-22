@@ -5,9 +5,9 @@
      * @param {jQuery} jContainer The container into which the fireballs should be placed
      * @param {Dyna.model.Explosion} explosion The explosion model object
      */
-    function CanvasExplosionView(jContainer, explosion) {
+    function CanvasExplosionView(jContainer, explosion, collisionDetection) {
         CanvasExplosionView.superclass.constructor.call(this, jContainer);
-        this.animations = this.createExplosion(explosion);
+        this.animations = this.createExplosion(explosion, collisionDetection);
         this.animate();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION * 5);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
@@ -17,7 +17,7 @@
 
     CanvasExplosionView.prototype.className = "explosion";
 
-    CanvasExplosionView.prototype.createExplosion = function(explosion) {
+    CanvasExplosionView.prototype.createExplosion = function(explosion, collisionDetection) {
         var i, tile, animations = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
 
         cx = (explosion.x + 0.5) * tileSize;
@@ -50,7 +50,7 @@
                 );
 
         for (i = 0; i < 25; i++) {
-            animations.push(new Dyna.ui.Shrapnel(cx, cy, tileSize / 2));
+            animations.push(new Dyna.ui.Shrapnel(cx, cy, tileSize / 2, collisionDetection));
         }
 
         return animations;

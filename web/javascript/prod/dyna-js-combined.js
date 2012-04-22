@@ -190,7 +190,31 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         window.cancelAnimationFrame = function(id) {
             clearTimeout(id);
         };
-}());(function(window) {
+}());(function(Dyna) {
+
+    function CollisionDetection(map) {
+        this.map = map;
+    }
+
+    /**
+     * Reference to the map
+     * @param {Dyna.model.Map}
+     */
+    CollisionDetection.prototype.map = null;
+
+    CollisionDetection.prototype.inSolid = function(screenX, screenY) {
+
+        var tileSize = Dyna.ui.LevelView.tileSize,
+                mapX = parseInt(screenX / tileSize),
+                mapY = parseInt(screenY / tileSize);
+
+        return this.map.isSolid(mapX, mapY);
+
+    };
+
+    Dyna.util.CollisionDetection = CollisionDetection;
+
+})(Dyna);(function(window) {
 
     var log = Function.prototype.bind.call(console.log, console);
 
@@ -2410,9 +2434,9 @@ if (typeof(Function.prototype.bind) == 'undefined') {
      * @param {jQuery} jContainer The container into which the fireballs should be placed
      * @param {Dyna.model.Explosion} explosion The explosion model object
      */
-    function CanvasExplosionView(jContainer, explosion) {
+    function CanvasExplosionView(jContainer, explosion, collisionDetection) {
         CanvasExplosionView.superclass.constructor.call(this, jContainer);
-        this.animations = this.createExplosion(explosion);
+        this.animations = this.createExplosion(explosion, collisionDetection);
         this.animate();
         Dyna.util.Timer.setTimeout(this.destroy.bind(this), CanvasExplosionView.DURATION * 5);
         Dyna.util.Sound.play(Dyna.util.Sound.EXPLOSION);
@@ -2422,7 +2446,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
     CanvasExplosionView.prototype.className = "explosion";
 
-    CanvasExplosionView.prototype.createExplosion = function(explosion) {
+    CanvasExplosionView.prototype.createExplosion = function(explosion, collisionDetection) {
         var i, tile, animations = [], tileSize = Dyna.ui.LevelView.tileSize, cx, cy, start = +new Date(), delay;
 
         cx = (explosion.x + 0.5) * tileSize;
@@ -2455,7 +2479,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 );
 
         for (i = 0; i < 25; i++) {
-            animations.push(new Dyna.ui.Shrapnel(cx, cy, tileSize / 2));
+            animations.push(new Dyna.ui.Shrapnel(cx, cy, tileSize / 2, collisionDetection));
         }
 
         return animations;
@@ -2814,7 +2838,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
 })(Dyna);(function(Dyna) {
 
-    function Shrapnel(cx, cy, radius) {
+    function Shrapnel(cx, cy, radius, collisionDetection) {
 
         var
                 angle = Math.random() * (Math.PI * 2),
@@ -2824,6 +2848,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         this.dy = r * Math.sin(angle);
         this.initX = cx + this.dx;
         this.initY = cy + this.dy;
+        this.collisionDetection = collisionDetection;
         this.start = +new Date();
     }
 
@@ -2832,7 +2857,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
     Shrapnel.prototype.initY = null;
     Shrapnel.prototype.dx = null;
     Shrapnel.prototype.dy = null;
-    Shrapnel.prototype.speed =3;
+    Shrapnel.prototype.speed = 3;
+    Shrapnel.prototype.collisionDetection = 3;
 
     Shrapnel.prototype.render = function(ctx, now) {
 
@@ -2841,9 +2867,14 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 currentX = this.initX + (elapsed * this.dx),
                 currentY = this.initY + (elapsed * this.dy);
 
-        ctx.globalAlpha = 1.0;
-        ctx.fillStyle = '#000';
-        ctx.fillRect(currentX, currentY, 3, 3);
+        if (this.collisionDetection.inSolid(currentX, currentY)) {
+            // cancel the animation
+            this.render = jQuery.noop;
+        } else {
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(currentX, currentY, 3, 3);
+        }
 
     };
 
@@ -2903,7 +2934,7 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                     return new Dyna.ui.BombView("#level .players", bomb)
                 },
                 explosionViewFactory = function(explosion) {
-                    return new Dyna.ui.CanvasExplosionView("#level", explosion)
+                    return new Dyna.ui.CanvasExplosionView("#level", explosion, new Dyna.util.CollisionDetection(map))
                 },
                 levelView = new Dyna.ui.LevelView("#level", level, mapViewFactory, lifeformViewFactory, bombViewFactory, explosionViewFactory);
 
