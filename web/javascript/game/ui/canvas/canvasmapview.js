@@ -45,7 +45,7 @@
 
         for (y = 0; y < map.height; y++) {
             ty = y * tileSize + 25;
-            wallLayer.push(new Tile(0, ty, 25, 50, this.images.wall_vertical));
+            wallLayer.push(new Dyna.ui.Tile(0, ty, 25, 50, this.images.wall_vertical));
             if (!map.isSolid(0, y)) {
                 shadowLayer.push(new Dyna.ui.VerticalShadow(25, ty + 10, 50));
             }
@@ -54,7 +54,7 @@
                 tile = map.tileAt(x, y);
                 tx = x * tileSize + 25;
                 if (tile.solid) {
-                    wallLayer.push(new Tile(tx, ty, 50, 50, this.images[tile.type]));
+                    wallLayer.push(new Dyna.ui.Tile(tx, ty, 50, 50, this.images[tile.type]));
                     if (!map.isSolid(x, y + 1)) {
                         shadowLayer.push(new Dyna.ui.HorizontalShadow(tx, ty + 50 + 10, 50));
                     }
@@ -62,10 +62,10 @@
                         shadowLayer.push(new Dyna.ui.VerticalShadow(tx + 50, ty + 10, 50));
                     }
                 } else {
-                    groundLayer.push(new Tile(tx, ty + 10, 50, 50, this.images[tile.type]));
+                    groundLayer.push(new Dyna.ui.Tile(tx, ty + 10, 50, 50, this.images[tile.type]));
                 }
             }
-            wallLayer.push(new Tile(map.width * tileSize + 25, ty, 25, 50, this.images.wall_vertical));
+            wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + 25, ty, 25, 50, this.images.wall_vertical));
 
         }
 
@@ -78,33 +78,20 @@
     };
 
     CanvasMapView.prototype.horizontalWall = function(wallLayer, shadowLayer, tileSize, map, y, my) {
-        wallLayer.push(new Tile(0, y, 25, 25, this.images.corner));
+        wallLayer.push(new Dyna.ui.Tile(0, y, 25, 25, this.images.corner));
         for (var x = 0; x < map.width; x++) {
-            wallLayer.push(new Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
+            wallLayer.push(new Dyna.ui.Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
             if (my !== undefined && !map.isSolid(x, my)) {
                 shadowLayer.push(new Dyna.ui.HorizontalShadow(x * tileSize + 25, y + 10 + 25, 50));
             }
         }
-        wallLayer.push(new Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
+        wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
     };
 
     CanvasMapView.prototype.updateAll = function() {
         log("Canvas Map View: UpdateAll ---------");
         this.animations = this.createMapTiles(this.map);
         this.render();
-    };
-
-    function Tile(x, y, width, height, image) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.image = image;
-    }
-
-    Tile.prototype.render = function(ctx, now) {
-        ctx.globalAlpha = 1.0;
-        ctx.drawImage(this.image, this.x, this.y);
     };
 
     Dyna.ui.CanvasMapView = CanvasMapView;
