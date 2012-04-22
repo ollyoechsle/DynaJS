@@ -2475,6 +2475,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
 
 })(window.Dyna, jQuery);(function(Dyna, jQuery) {
 
+    var tileSize = Dyna.ui.LevelView.tileSize, blockHeight = 10, wallWidth = 25;
+
     /**
      * @constructor
      * @param {jQuery} jContainer The container into which the fireballs should be placed
@@ -2516,7 +2518,8 @@ if (typeof(Function.prototype.bind) == 'undefined') {
                 shadowLayer = new Dyna.ui.Layer("shadow"),
                 wallLayer = new Dyna.ui.Layer("wall");
 
-        this.horizontalWall(wallLayer, shadowLayer, tileSize, map, 0, 0);
+        this.horizontalWall(wallLayer, map, 0);
+        this.horizontalShadow(shadowLayer, map, 0);
 
         for (y = 0; y < map.height; y++) {
             ty = y * tileSize + 25;
@@ -2545,26 +2548,31 @@ if (typeof(Function.prototype.bind) == 'undefined') {
         }
 
         shadowLayer.push(new Dyna.ui.VerticalShadow(map.width * tileSize + 25 + 25, 10, (map.height * tileSize) + 25 + 25));
-        shadowLayer.push(new Dyna.ui.HorizontalShadow(0, (map.height * tileSize) + 25 + 25 + 10, (map.width * tileSize) + 25 + 25));
 
-        this.horizontalWall(wallLayer, shadowLayer, tileSize, map, map.height * tileSize + 25, undefined);
+        this.horizontalWall(wallLayer, map, (map.height * tileSize) + wallWidth);
+        shadowLayer.push(new Dyna.ui.HorizontalShadow(0, (map.height * tileSize) + tileSize + blockHeight, (map.width * tileSize) + wallWidth + wallWidth));
 
         return [groundLayer, shadowLayer, wallLayer];
     };
 
-    CanvasMapView.prototype.horizontalWall = function(wallLayer, shadowLayer, tileSize, map, y, my) {
-        wallLayer.push(new Dyna.ui.Tile(0, y, 25, 25, this.images.corner));
+    CanvasMapView.prototype.horizontalWall = function(wallLayer, map, ty) {
+        wallLayer.push(new Dyna.ui.Tile(0, ty, 25, 25, this.images.corner));
         for (var x = 0; x < map.width; x++) {
-            wallLayer.push(new Dyna.ui.Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
-            if (my !== undefined && !map.isSolid(x, my)) {
-                shadowLayer.push(new Dyna.ui.HorizontalShadow(x * tileSize + 25, y + 10 + 25, 50));
+            wallLayer.push(new Dyna.ui.Tile(x * tileSize + 25, ty, 50, 25, this.images.wall_horizontal));
+        }
+        wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + 25, ty, 25, 25, this.images.corner));
+    };
+
+    CanvasMapView.prototype.horizontalShadow = function(shadowLayer, map, y) {
+        var x, ty = (y * tileSize) + wallWidth + blockHeight;
+        for (x = 0; x < map.width; x++) {
+            if (!map.isSolid(x, y)) {
+                shadowLayer.push(new Dyna.ui.HorizontalShadow(x * tileSize + wallWidth, ty, tileSize));
             }
         }
-        wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
     };
 
     CanvasMapView.prototype.updateAll = function() {
-        log("Canvas Map View: UpdateAll ---------");
         this.animations = this.createMapTiles(this.map);
         this.render();
     };
