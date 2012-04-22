@@ -25,7 +25,7 @@
         var expansionFn = Math.getGaussianFunction(0.33);
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 20, 20, tileSize, "#E83C0A", start)
+                new Dyna.ui.Fireball(cx, cy, explosion, 20, 20, tileSize, "#E83C0A", start)
                         .withExpansionFn(expansionFn)
                         .withOpacityFn(function() {
                     return 0.5
@@ -33,17 +33,17 @@
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 15, 15, tileSize - 5, "#F7EC64", start)
+                new Dyna.ui.Fireball(cx, cy, explosion, 15, 15, tileSize - 5, "#F7EC64", start)
                         .withExpansionFn(expansionFn)
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 5, 5, tileSize - 10, "#FFFFFF", start)
+                new Dyna.ui.Fireball(cx, cy, explosion, 5, 5, tileSize - 10, "#FFFFFF", start)
                         .withExpansionFn(expansionFn)
                 );
 
         fireballs.push(
-                new Dyna.ui.Flash(cx, cy, explosion, 15, 15, tileSize - 5, "rgba(0, 0, 0, 0)", start + 500)
+                new Dyna.ui.Fireball(cx, cy, explosion, 15, 15, tileSize - 5, "rgba(0, 0, 0, 0)", start + 500)
                         .withOpacityFn(Math.getGaussianFunction(0.33))
                         .withDuration(1500)
                         .withShadow(20, '#000000')

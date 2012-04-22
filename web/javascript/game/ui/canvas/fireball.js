@@ -1,11 +1,11 @@
 (function(Dyna) {
 
-    function Flash(x, y, explosion, innerWidth, outerWidth, tileSize, color, start) {
+    function Fireball(x, y, explosion, innerWidth, outerWidth, tileSize, color, start) {
         this.x = x;
         this.y = y;
         this.innerWidth = innerWidth;
         this.outerWidth = outerWidth;
-        this.expansionFn = Flash.STATIC;
+        this.expansionFn = Fireball.STATIC;
         this.color = color;
         var min = (tileSize * 0.5) - outerWidth;
         if (explosion.northExtent) {
@@ -25,55 +25,55 @@
         }
 
         this.start = start;
-        this.opacityFn = Flash.STATIC;
+        this.opacityFn = Fireball.STATIC;
         this.shadowColor = color;
     }
 
     /**
      * @type {Number} The start time
      */
-    Flash.prototype.start = null;
-    Flash.prototype.x = null;
-    Flash.prototype.y = null;
-    Flash.prototype.northPoint = null;
-    Flash.prototype.southPoint = null;
-    Flash.prototype.eastPoint = null;
-    Flash.prototype.westPoint = null;
-    Flash.prototype.expansionFn = null;
-    Flash.prototype.color = null;
-    Flash.prototype.innerWidth = null;
-    Flash.prototype.outerWidth = null;
-    Flash.prototype.opacityFn = null;
-    Flash.prototype.blur = 5;
-    Flash.prototype.shadowColor = null;
-    Flash.prototype.duration = Dyna.ui.CanvasExplosionView.DURATION;
+    Fireball.prototype.start = null;
+    Fireball.prototype.x = null;
+    Fireball.prototype.y = null;
+    Fireball.prototype.northPoint = null;
+    Fireball.prototype.southPoint = null;
+    Fireball.prototype.eastPoint = null;
+    Fireball.prototype.westPoint = null;
+    Fireball.prototype.expansionFn = null;
+    Fireball.prototype.color = null;
+    Fireball.prototype.innerWidth = null;
+    Fireball.prototype.outerWidth = null;
+    Fireball.prototype.opacityFn = null;
+    Fireball.prototype.blur = 5;
+    Fireball.prototype.shadowColor = null;
+    Fireball.prototype.duration = Dyna.ui.CanvasExplosionView.DURATION;
 
-    Flash.prototype.withOpacityFn = function(opacityFn) {
+    Fireball.prototype.withOpacityFn = function(opacityFn) {
         this.opacityFn = opacityFn;
         return this;
     };
 
-    Flash.prototype.withExpansionFn = function(fn) {
+    Fireball.prototype.withExpansionFn = function(fn) {
         this.expansionFn = fn;
         return this;
     };
 
-    Flash.prototype.withShadow = function(blur, shadowColor) {
+    Fireball.prototype.withShadow = function(blur, shadowColor) {
         this.blur = blur;
         this.shadowColor = shadowColor;
         return this;
     };
 
-    Flash.prototype.withDuration = function(duration) {
+    Fireball.prototype.withDuration = function(duration) {
         this.duration = duration;
         return this;
     };
 
-    Flash.prototype.getTimeElapsed = function(now) {
+    Fireball.prototype.getTimeElapsed = function(now) {
         return (now - this.start) / this.duration;
     };
 
-    Flash.prototype.render = function(ctx, now) {
+    Fireball.prototype.render = function(ctx, now) {
 
         if (now < this.start) {
             return;
@@ -134,10 +134,10 @@
         ctx.fill();
     };
 
-    Flash.STATIC = function() {
+    Fireball.STATIC = function() {
         return 1;
     };
 
-    Dyna.ui.Flash = Flash;
+    Dyna.ui.Fireball = Fireball;
 
 })(Dyna);
