@@ -43,19 +43,26 @@
                 shadowLayer = new Dyna.ui.Layer("shadow"),
                 wallLayer = new Dyna.ui.Layer("wall");
 
+        /* Draw the North Wall */
         this.horizontalWall(wallLayer, map, 0);
         this.horizontalShadow(shadowLayer, map, 0);
 
+        ty = wallWidth;
+
         for (y = 0; y < map.height; y++) {
-            ty = y * tileSize + wallWidth;
+
+            /* Draw the West Wall */
             wallLayer.push(new Dyna.ui.Tile(0, ty, wallWidth, tileSize, this.images.wall_vertical));
             if (!map.isSolid(0, y)) {
                 shadowLayer.push(new Dyna.ui.VerticalShadow(wallWidth, ty + blockHeight, tileSize));
             }
 
+            tx = wallWidth;
+
+            /* Draw one row of the map */
             for (x = 0; x < map.width; x++) {
                 tile = map.tileAt(x, y);
-                tx = x * tileSize + wallWidth;
+
                 if (tile.solid) {
                     wallLayer.push(new Dyna.ui.Tile(tx, ty, tileSize, tileSize, this.images[tile.type]));
                     if (!map.isSolid(x, y + 1)) {
@@ -67,12 +74,22 @@
                 } else {
                     groundLayer.push(new Dyna.ui.Tile(tx, ty + blockHeight, tileSize, tileSize, this.images[tile.type]));
                 }
-            }
-            wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + wallWidth, ty, wallWidth, tileSize, this.images.wall_vertical));
-         }
 
+                tx += tileSize;
+
+            }
+
+            /* Draw the east wall */
+            wallLayer.push(new Dyna.ui.Tile(map.width * tileSize + wallWidth, ty, wallWidth, tileSize, this.images.wall_vertical));
+
+            ty += tileSize;
+
+        }
+
+        /* Draw the east wall shadow in one go */
         shadowLayer.push(new Dyna.ui.VerticalShadow(map.width * tileSize + wallWidth + wallWidth, blockHeight, (map.height * tileSize) + wallWidth + wallWidth));
 
+        /* Draw the south wall */
         this.horizontalWall(wallLayer, map, (map.height * tileSize) + wallWidth);
         shadowLayer.push(new Dyna.ui.HorizontalShadow(0, (map.height * tileSize) + tileSize + blockHeight, (map.width * tileSize) + wallWidth + wallWidth));
 
