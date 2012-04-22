@@ -47,7 +47,7 @@
             ty = y * tileSize + 25;
             wallLayer.push(new Tile(0, ty, 25, 50, this.images.wall_vertical));
             if (!map.isSolid(0, y)) {
-                shadowLayer.push(new VerticalShadow(25, ty + 10, 50));
+                shadowLayer.push(new Dyna.ui.VerticalShadow(25, ty + 10, 50));
             }
 
             for (x = 0; x < map.width; x++) {
@@ -56,10 +56,10 @@
                 if (tile.solid) {
                     wallLayer.push(new Tile(tx, ty, 50, 50, this.images[tile.type]));
                     if (!map.isSolid(x, y + 1)) {
-                        shadowLayer.push(new HorizontalShadow(tx, ty + 50 + 10, 50));
+                        shadowLayer.push(new Dyna.ui.HorizontalShadow(tx, ty + 50 + 10, 50));
                     }
                     if (!map.isSolid(x + 1, y)) {
-                        shadowLayer.push(new VerticalShadow(tx + 50, ty + 10, 50));
+                        shadowLayer.push(new Dyna.ui.VerticalShadow(tx + 50, ty + 10, 50));
                     }
                 } else {
                     groundLayer.push(new Tile(tx, ty + 10, 50, 50, this.images[tile.type]));
@@ -69,8 +69,8 @@
 
         }
 
-        shadowLayer.push(new VerticalShadow(map.width * tileSize + 25 + 25, 10, (map.height * tileSize) + 25 + 25));
-        shadowLayer.push(new HorizontalShadow(0, (map.height * tileSize) + 25 + 25 + 10, (map.width * tileSize) + 25 + 25));
+        shadowLayer.push(new Dyna.ui.VerticalShadow(map.width * tileSize + 25 + 25, 10, (map.height * tileSize) + 25 + 25));
+        shadowLayer.push(new Dyna.ui.HorizontalShadow(0, (map.height * tileSize) + 25 + 25 + 10, (map.width * tileSize) + 25 + 25));
 
         this.horizontalWall(wallLayer, shadowLayer, tileSize, map, map.height * tileSize + 25, undefined);
 
@@ -82,7 +82,7 @@
         for (var x = 0; x < map.width; x++) {
             wallLayer.push(new Tile(x * tileSize + 25, y, 50, 25, this.images.wall_horizontal));
             if (my !== undefined && !map.isSolid(x, my)) {
-                shadowLayer.push(new HorizontalShadow(x * tileSize + 25, y + 10 + 25, 50));
+                shadowLayer.push(new Dyna.ui.HorizontalShadow(x * tileSize + 25, y + 10 + 25, 50));
             }
         }
         wallLayer.push(new Tile(map.width * tileSize + 25, y, 25, 25, this.images.corner));
@@ -106,46 +106,6 @@
         ctx.globalAlpha = 1.0;
         ctx.drawImage(this.image, this.x, this.y);
     };
-
-    function HorizontalShadow(x, y, width) {
-        this.x1 = x;
-        this.y1 = y;
-        this.x2 = x + width;
-        this.y2 = y;
-    }
-
-    function VerticalShadow(x, y, height) {
-        this.x1 = x;
-        this.y1 = y;
-        this.x2 = x;
-        this.y2 = y + height;
-    }
-
-    VerticalShadow.prototype.render = HorizontalShadow.prototype.render = function(ctx, now) {
-        var
-                x1 = this.x1,
-                y1 = this.y1,
-                x2 = this.x2,
-                y2 = this.y2;
-
-        ctx.globalAlpha = 1;
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = "rgba(0,0,0,0.1)";
-        ctx.shadowColor = '#000';
-
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x2 + HorizontalShadow.dx, y2 + HorizontalShadow.dy);
-        ctx.lineTo(x1 + HorizontalShadow.dx, y1 + HorizontalShadow.dy);
-        ctx.lineTo(x1, y1);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-    };
-
-    HorizontalShadow.dx = 10;
-    HorizontalShadow.dy = 10;
 
     Dyna.ui.CanvasMapView = CanvasMapView;
 
