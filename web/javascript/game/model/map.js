@@ -88,6 +88,14 @@
         }
     };
 
+    Map.prototype.isSolid = function(x, y) {
+        if (this.inBounds(x, y)) {
+            return this.data[x][y].solid;
+        } else {
+            return false;
+        }
+    };
+
     Map.prototype.isFree = function(x, y) {
         var tile = this.tileAt(x, y);
         return tile && !tile.solid && !Dyna.service.FBI.instance.bombAt(x, y);
